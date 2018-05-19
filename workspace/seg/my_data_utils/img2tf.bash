@@ -9,13 +9,13 @@
 #DATA_ROOT="/OwlNAS/OwlDocuments/OwlStudio/data/sgmt-data"
 #WORK_DIR="/home/corp.owlii.com/yi.xu/data/owlii_studio"
 
-DATA_ROOT="/home/corp.owlii.com/yi.xu/data/pascal_voc_seg/VOCdevkit/VOC2012/saliency"
+DATA_ROOT="/home/corp.owlii.com/yi.xu/data/lfw_head"
 OUTPUT_DIR="${DATA_ROOT}/tfrecord"
 mkdir -p "${OUTPUT_DIR}"
 
 num_shards=5
-IMAGE_FOLDER="${DATA_ROOT}/../JPEGImages"
-MASK_FOLDER="${DATA_ROOT}/mask"
+IMAGE_FOLDER="${DATA_ROOT}/img"
+MASK_FOLDER="${DATA_ROOT}/msk"
 LIST_FOLDER="${DATA_ROOT}/list"
 python ./img2tf.py \
   --image_folder="${IMAGE_FOLDER}" \

@@ -8,7 +8,7 @@
 # Then do the following.
 #ori_loc="/OwlNAS/OwlDocuments/tmp/xy/temp/reshape_removed.pbtxt"
 ori_loc="./reshape_removed.pbtxt"
-log_dir="dec1/voc"
+log_dir="dec1/train"
 name="sfm_graph"
 pbtxt_name="${name}.pbtxt"
 
@@ -29,11 +29,16 @@ python ${WORKSPACE}/my_graph_utils/pbtxt2pb.py \
     --output_dir="${DEPLOY_DIR}" \
     --pb_name="${pb_name}"
 
-
+. /home/corp.owlii.com/yi.xu/anaconda2/etc/profile.d/conda.sh
+conda deactivate
+conda activate tf-coreml
 python ${WORKSPACE}/tf_coreml_utils/tf2coreml.py \
     --input_pb_file="${DEPLOY_DIR}/${pb_name}" \
     --output_mlmodel="${DEPLOY_DIR}/${mlmodel}" \
     --input_node_name=${input_node} \
     --output_node_name=${ml_output_node}
+conda deactivate
+conda activate tensorflow
+
 
 

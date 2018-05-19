@@ -123,6 +123,15 @@ _PASCAL_VOC_SALIENCY = DatasetDescriptor(
     ignore_label=255,
 )
 
+_LFW_HEAD = DatasetDescriptor(
+    splits_to_sizes = {
+        'train': 2427,
+        'val': 500,
+    },
+    num_classes=2,
+    ignore_label=255,
+)
+
 _DATASETS_INFORMATION = {
     'cityscapes': _CITYSCAPES_INFORMATION,
     'pascal_voc_seg': _PASCAL_VOC_SEG_INFORMATION,
@@ -134,6 +143,7 @@ _DATASETS_INFORMATION = {
     'coco2017_human': _COCO2017_HUMAN,
     'coco2017_saliency': _COCO2017_SALIENCY,
     'coco2017_saliency_ext': _COCO2017_SALIENCY_EXT,
+    'lfw_head': _LFW_HEAD,
 }
 
 # Default file pattern of TFRecord of TensorFlow Example.
