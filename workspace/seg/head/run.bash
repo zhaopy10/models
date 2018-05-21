@@ -16,19 +16,18 @@ checkpoint_exclude_scopes="MobilenetV2/Logits"
 trainable_scopes="MobilenetV2/Logits,MobilenetV2/Conv_3,MobilenetV2/Decoder"
 
 num_clones_new=1
-batch_size_new=180    # 192 * 2  
-train_steps_new=14000  # 6000 steps, about 31 epoches
+batch_size_new=128     # 128
+train_steps_new=1000    # 1000 steps, about 51 epoches
 second_stage_dir="all"
-num_clones=2
-batch_size=136
-train_steps=30000     # 30000 steps, about 50 epoches
+num_clones=1
+batch_size=64
+train_steps=2000      # 2000 steps, about 51 epoches
 lr_decay_factor=0.87
 
 ###########################################
-HOME="/home/corp.owlii.com/yi.xu"
-SLIM="${HOME}/tensorflow/models/research/slim"
+HOME="/home/xuyi"
 WORKSPACE="${HOME}/workspace/models/workspace/seg"
-DATASET_DIR="${HOME}/data/${tfrecord_dir}"
+DATASET_DIR="${HOME}/disk/data/${tfrecord_dir}"
 INIT_CHECKPOINT="${WORKSPACE}/${ckpt}"
 TRAIN_DIR="${WORKSPACE}/${log_dir}"
 mkdir -p ${TRAIN_DIR}
@@ -47,7 +46,7 @@ python train_sgmt.py \
   --max_number_of_steps=${train_steps_new} \
   --batch_size=${batch_size_new} \
   --min_scale_factor=0.5 \
-  --max_scale_factor=2.0 \
+  --max_scale_factor=1.5 \
   --scale_factor_step_size=0 \
   --learning_rate=0.01 \
   --learning_rate_decay_type=fixed \
@@ -70,8 +69,8 @@ python eval_sgmt.py \
   --dataset_dir=${DATASET_DIR} \
   --model_name=${model_name} \
   --batch_size=8 \
-  --min_resize_value=512 \
-  --max_resize_value=512 \
+  --min_resize_value=256 \
+  --max_resize_value=256 \
   --use_decoder=True \
   --max_number_of_evaluations 1  # 0 for infinite loop
 
@@ -87,7 +86,7 @@ python train_sgmt.py \
   --max_number_of_steps=${train_steps} \
   --batch_size=${batch_size} \
   --min_scale_factor=0.5 \
-  --max_scale_factor=2.0 \
+  --max_scale_factor=1.5 \
   --scale_factor_step_size=0 \
   --learning_rate=0.01 \
   --learning_rate_decay_type=exponential \
@@ -111,8 +110,8 @@ python eval_sgmt.py \
   --dataset_dir=${DATASET_DIR} \
   --model_name=${model_name} \
   --batch_size=8 \
-  --min_resize_value=512 \
-  --max_resize_value=512 \
+  --min_resize_value=256 \
+  --max_resize_value=256 \
   --use_decoder=True \
   --max_number_of_evaluations 1  # 0 for infinite loop
 

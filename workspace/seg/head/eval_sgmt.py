@@ -86,11 +86,11 @@ tf.app.flags.DEFINE_float(
 #    'The number of images in each batch during evaluation.')
 
 tf.app.flags.DEFINE_multi_integer(
-    'eval_crop_size', [512, 512],
+    'eval_crop_size', [256, 256],
     'Image crop size [height, width] for evaluation.')
 
 tf.app.flags.DEFINE_multi_integer(
-    'output_size', [512, 512], 'As mentioned')
+    'output_size', [256, 256], 'As mentioned')
 
 #tf.app.flags.DEFINE_integer(
 #    'min_resize_value', 512, 'As mentioned')

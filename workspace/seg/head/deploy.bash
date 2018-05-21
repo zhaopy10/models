@@ -1,11 +1,19 @@
 #!/bin/bash
 
-dataset_name="coco2017_saliency_ext"
-tfrecord_dir="coco2017/saliency_ext/tfrecord"
-log_dir="dec1/voc"
+dataset_name="lfw_head"
+tfrecord_dir="lfw_head/tfrecord"
+log_dir="head/trained"
 
 model_name="mobilenet_v2_035_sgmt"
-ckpt="${log_dir}/model.ckpt-12"
+ckpt="${log_dir}/model.ckpt-2000"
+
+input_height=256
+input_width=256
+transforms='strip_unused_nodes(type=float, shape="1,256,256,3")
+            remove_nodes(op=Identity, op=CheckNumerics)
+            fold_constants(ignore_errors=true)
+            fold_batch_norms
+            fold_old_batch_norms'
 
 ###############################################
 HOME="/home/corp.owlii.com/yi.xu"
@@ -33,7 +41,7 @@ deploy="${DEPLOY_DIR}/deploy_graph.pb"
 pbtxt_name="deploy_graph.pbtxt"
 
 deploy_mlmodel="${DEPLOY_DIR}/deploy_graph.mlmodel"
-ml_output_node=None  # use None when the logits is already 512x512
+ml_output_node=None  # use None when the logits is already at the required output size
 #ml_output_node="MobilenetV2/ResizeBilinear:0"
 #ml_output_node="MobilenetV2/heatmap:0"
 #input_size=[1,512,512,3]
@@ -70,11 +78,13 @@ ${TFBAZEL}/tensorflow/tools/graph_transforms/transform_graph \
     --out_graph=${deploy} \
     --inputs=${input_node} \
     --outputs=${output_node} \
-    --transforms='strip_unused_nodes(type=float, shape="1,512,512,3")
-                  remove_nodes(op=Identity, op=CheckNumerics)
-                  fold_constants(ignore_errors=true)
-                  fold_batch_norms
-                  fold_old_batch_norms'
+    --transforms=${transforms}
+
+#    --transforms='strip_unused_nodes(type=float, shape="1,256,256,3")
+#                  remove_nodes(op=Identity, op=CheckNumerics)
+#                  fold_constants(ignore_errors=true)
+#                  fold_batch_norms
+#                  fold_old_batch_norms'
 #                  add_default_attributes'
 
 
@@ -89,7 +99,9 @@ python ${WORKSPACE}/tf_coreml_utils/tf2coreml.py \
     --input_pb_file=${deploy} \
     --output_mlmodel=${deploy_mlmodel} \
     --input_node_name=${input_node} \
-    --output_node_name=${ml_output_node}
+    --output_node_name=${ml_output_node} \
+    --input_height=${input_height} \
+    --input_width=${input_width}
 
 
 result_dir="${DEPLOY_DIR}/deployed_graph"

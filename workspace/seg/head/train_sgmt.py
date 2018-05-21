@@ -196,11 +196,11 @@ tf.app.flags.DEFINE_integer(
 #tf.app.flags.DEFINE_integer(
 #    'train_image_size', 224, 'Train image size')
 tf.app.flags.DEFINE_multi_integer(
-    'train_crop_size', [512, 512],
+    'train_crop_size', [256, 256],
     'Image crop size [height, width] during training.')
 
 tf.app.flags.DEFINE_multi_integer(
-    'output_size', [512, 512], 'As mentioned')
+    'output_size', [256, 256], 'As mentioned')
 
 #tf.app.flags.DEFINE_integer(
 #    'min_resize_value', None, 'See min_resize_value in Deeplab.')

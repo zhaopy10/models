@@ -314,8 +314,8 @@ def decoder(net_outputs, decoder_inputs, end_points,
     for i in range(num_skips):
       bridge = decoder_inputs[i]
       if bridge_ch_nums[i] > 0:
-        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]) + 'x' + \
-                         str(skip_res[i][1])  + '_bridge'
+        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]*2) + 'x' + \
+                         str(skip_res[i][1]*2)  + '_bridge'
         bridge = bridge_conv(bridge,
                    bridge_ch_nums[i],
                    scope=scope_name)
@@ -324,8 +324,8 @@ def decoder(net_outputs, decoder_inputs, end_points,
                    output, skip_res[i])
       output = tf.concat([bridge, output], 3)
       if output_ch_nums[i] > 0:
-        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]) + 'x' + \
-                         str(skip_res[i][1])  + '_output'
+        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]*2) + 'x' + \
+                         str(skip_res[i][1]*2)  + '_output'
         output = output_conv(output, output_ch_nums[i], scope=scope_name)
         end_points[scope_name] = output
 
@@ -404,7 +404,7 @@ def mobilenet(inputs,
                         end_points['layer_4'],
                         end_points['layer_2'],
                         inputs]
-      skip_res = [[32, 32], [64, 64], [128, 128], [256, 256], [512, 512]]
+      skip_res = [[16, 16], [32, 32], [64, 64], [128, 128], [256, 256]]
       bridge_ch_nums=[8, 8, 8, 8, 4]
       output_ch_nums=[8, 8, 8, 2, 2]
       net = decoder(net, decoder_inputs, end_points,

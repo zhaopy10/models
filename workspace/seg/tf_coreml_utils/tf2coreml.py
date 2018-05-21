@@ -21,10 +21,16 @@ tf.app.flags.DEFINE_string(
     'MobilenetV2/ResizeBilinear:0',
     'As mentioned')
 
-tf.app.flags.DEFINE_multi_integer(
-    'input_size', 
-    [1, 512, 512, 3], 
-    'As mentioned')
+#tf.app.flags.DEFINE_multi_integer(
+#    'input_size', 
+#    [1, 512, 512, 3], 
+#    'As mentioned')
+
+tf.app.flags.DEFINE_integer(
+    'input_height', 512, 'As mentioned')
+
+tf.app.flags.DEFINE_integer(
+    'input_width', 512, 'As mentioned')
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -36,7 +42,9 @@ def main(unused_argv):
                        mlmodel_path = FLAGS.output_mlmodel,
                        output_feature_names = output_feature_names,
                        image_input_names = [FLAGS.input_node_name],
-                       input_name_shape_dict = {FLAGS.input_node_name : FLAGS.input_size})
+                       input_name_shape_dict = {FLAGS.input_node_name : 
+                           [1,FLAGS.input_height,FLAGS.input_width,3]})
+#                       input_name_shape_dict = {FLAGS.input_node_name : FLAGS.input_size})
 #                       red_bias = -123.68,
 #                       green_bias = -116.78, 
 #                       blue_bias = -103.94)
