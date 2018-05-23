@@ -234,7 +234,7 @@ def _configure_learning_rate(num_samples_per_epoch, global_step):
     ValueError: if
   """
   decay_steps = int(num_samples_per_epoch / FLAGS.batch_size *
-                    FLAGS.num_epochs_per_decay)
+                    FLAGS.num_epochs_per_decay / FLAGS.num_clones)
   if FLAGS.sync_replicas:
     decay_steps /= FLAGS.replicas_to_aggregate
 
@@ -453,6 +453,10 @@ def main(_):
       """Allows data parallelism by creating multiple clones of network_fn."""
       images, labels = batch_queue.dequeue()
       logits, end_points = network_fn(images)
+
+      print('images.shape: ', images.shape)
+      print('labels.shape: ', labels.shape)
+      print('logits.shape: ', logits.shape)
 
       #############################
       # Specify the loss function #

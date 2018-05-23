@@ -79,6 +79,9 @@ tf.app.flags.DEFINE_float(
 tf.app.flags.DEFINE_integer(
     'eval_image_size', None, 'Eval image size')
 
+tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 5,
+                     'How often (in seconds) to run evaluation.')
+
 FLAGS = tf.app.flags.FLAGS
 
 
@@ -178,13 +181,31 @@ def main(_):
 
     tf.logging.info('Evaluating %s' % checkpoint_path)
 
-    slim.evaluation.evaluate_once(
+#    slim.evaluation.evaluate_once(
+#        master=FLAGS.master,
+#        checkpoint_path=checkpoint_path,
+#        logdir=FLAGS.eval_dir,
+#        num_evals=num_batches,
+#        eval_op=list(names_to_updates.values()),
+#        variables_to_restore=variables_to_restore)
+
+    num_eval_iters = None
+    if FLAGS.max_number_of_evaluations > 0:
+      num_eval_iters = FLAGS.max_number_of_evaluations
+
+    if FLAGS.use_cpu:
+      config = tf.ConfigProto(device_count={'GPU':0})
+    else:
+      config = None
+    slim.evaluation.evaluation_loop(
         master=FLAGS.master,
-        checkpoint_path=checkpoint_path,
+        checkpoint_dir=FLAGS.checkpoint_path,
         logdir=FLAGS.eval_dir,
         num_evals=num_batches,
-        eval_op=list(names_to_updates.values()),
-        variables_to_restore=variables_to_restore)
+        eval_op=list(metrics_to_updates.values()),
+        max_number_of_evaluations=num_eval_iters,
+        eval_interval_secs=FLAGS.eval_interval_secs,
+        session_config=config)
 
 
 if __name__ == '__main__':
