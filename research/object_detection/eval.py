@@ -133,7 +133,7 @@ def main(unused_argv):
     graph_rewriter_fn = graph_rewriter_builder.build(
         configs['graph_rewriter_config'], is_training=False)
 
-  evaluator.evaluate(
+  metrics = evaluator.evaluate(
       create_input_dict_fn,
       model_fn,
       eval_config,
@@ -141,6 +141,8 @@ def main(unused_argv):
       FLAGS.checkpoint_dir,
       FLAGS.eval_dir,
       graph_hook_fn=graph_rewriter_fn)
+
+  print('################', metrics)
 
 
 if __name__ == '__main__':
