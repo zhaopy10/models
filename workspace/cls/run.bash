@@ -1,8 +1,8 @@
 #!/bin/bash
 
-num_clones=4
-batch_size=512
-num_steps=200000    # about 315 epochs
+num_clones=3        # 3
+batch_size=512      # 512
+num_steps=250000    # 200000 steps, about 295 epochs
 
 start_lr=0.045
 end_lr=0.0001
@@ -29,12 +29,13 @@ python ${SLIM}/train_image_classifier.py \
     --end_learning_rate=${end_lr} \
     --num_epochs_per_decay=1.0 \
     --dataset_name=imagenet \
-    --num_readers=16 \
-    --num_preprocessing_threads=16 \
+    --num_readers=9 \
+    --num_preprocessing_threads=9 \
     --log_every_n_steps=1 \
     --save_summaries_secs=600 \
-    --save_interval_secs=600
-
+    --save_interval_secs=600 \
+    --max_ckpts_to_keep=3 \
+    --keep_ckpt_every_n_hours=6.0
 
 
 

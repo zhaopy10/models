@@ -217,6 +217,13 @@ tf.app.flags.DEFINE_boolean(
     'ignore_missing_vars', False,
     'When restoring a checkpoint would ignore missing variables.')
 
+# new
+tf.app.flags.DEFINE_integer(
+    'max_ckpts_to_keep', 3, 'As mentioned')
+
+tf.app.flags.DEFINE_float(
+    'keep_ckpt_every_n_hours', 1.0, 'As mentioned')
+
 FLAGS = tf.app.flags.FLAGS
 
 
@@ -554,6 +561,11 @@ def main(_):
     # Merge all summaries together.
     summary_op = tf.summary.merge(list(summaries), name='summary_op')
 
+    # saver
+    saver = tf.train.Saver(
+                max_to_keep=FLAGS.max_ckpts_to_keep,
+                keep_checkpoint_every_n_hours=FLAGS.keep_ckpt_every_n_hours)
+
     ###########################
     # Kicks off the training. #
     ###########################
@@ -568,6 +580,7 @@ def main(_):
         log_every_n_steps=FLAGS.log_every_n_steps,
         save_summaries_secs=FLAGS.save_summaries_secs,
         save_interval_secs=FLAGS.save_interval_secs,
+        saver=saver,
         sync_optimizer=optimizer if FLAGS.sync_replicas else None)
 
 
