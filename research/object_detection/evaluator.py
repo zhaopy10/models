@@ -76,6 +76,8 @@ def _extract_predictions_and_losses(model,
   prediction_dict = model.predict(preprocessed_image, true_image_shapes)
   detections = model.postprocess(prediction_dict, true_image_shapes)
 
+  print('################', detections)
+
   groundtruth = None
   losses_dict = {}
   if not ignore_groundtruth:
