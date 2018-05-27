@@ -2,7 +2,7 @@
 
 num_clones=3        # 3
 batch_size=512      # 512
-num_steps=250000    # 200000 steps, about 295 epochs
+num_steps=250000    # 250000 steps, about 295 epochs
 
 start_lr=0.045
 end_lr=0.0001
