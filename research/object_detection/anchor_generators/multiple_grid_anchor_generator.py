@@ -185,6 +185,11 @@ class MultipleGridAnchorGenerator(anchor_generator.AnchorGenerator):
     im_height = tf.to_float(im_height)
     im_width = tf.to_float(im_width)
 
+#    print('###########anchor_generators/multiple_grid_anchor_generator.py############')
+#    tf.Print(im_height, [im_height])
+#    tf.Print(im_width, [im_width])
+#    seems like im_height and im_width are normalized, so it is probably [300, 300]
+
     if not self._anchor_strides:
       anchor_strides = [(1.0 / tf.to_float(pair[0]), 1.0 / tf.to_float(pair[1]))
                         for pair in feature_map_shape_list]
@@ -304,6 +309,14 @@ def create_ssd_anchors(num_layers=6,
   Returns:
     a MultipleGridAnchorGenerator
   """
+
+#  print(interpolated_scale_aspect_ratio)  # 1.0
+#  print(scales)  # []
+#  print(base_anchor_size)  # [1.0, 1.0]
+#  print(anchor_strides)  # None
+#  print(anchor_offsets)  # None
+#  print(reduce_boxes_in_lowest_layer)  # True
+
   if base_anchor_size is None:
     base_anchor_size = [1.0, 1.0]
   base_anchor_size = tf.constant(base_anchor_size, dtype=tf.float32)
@@ -311,6 +324,7 @@ def create_ssd_anchors(num_layers=6,
   if scales is None or not scales:
     scales = [min_scale + (max_scale - min_scale) * i / (num_layers - 1)
               for i in range(num_layers)] + [1.0]
+#    print(scales)  # [0.2, 0.35, 0.5, 0.65, 0.8, 0.95, 1.0]
   else:
     # Add 1.0 to the end, which will only be used in scale_next below and used
     # for computing an interpolated scale for the largest scale in the list.
@@ -321,6 +335,7 @@ def create_ssd_anchors(num_layers=6,
     layer_box_specs = []
     if layer == 0 and reduce_boxes_in_lowest_layer:
       layer_box_specs = [(0.1, 1.0), (scale, 2.0), (scale, 0.5)]
+#      print(len(layer_box_specs))  # 3
     else:
       for aspect_ratio in aspect_ratios:
         layer_box_specs.append((scale, aspect_ratio))
@@ -330,7 +345,9 @@ def create_ssd_anchors(num_layers=6,
       if interpolated_scale_aspect_ratio > 0.0:
         layer_box_specs.append((np.sqrt(scale*scale_next),
                                 interpolated_scale_aspect_ratio))
+#      print(len(layer_box_specs))  # 5
     box_specs_list.append(layer_box_specs)
+#  print(box_specs_list) # totally 3 + 6 * 5 = 33 speces
 
   return MultipleGridAnchorGenerator(box_specs_list, base_anchor_size,
                                      anchor_strides, anchor_offsets)

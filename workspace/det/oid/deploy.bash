@@ -2,11 +2,11 @@
 
 ROOT="/home/corp.owlii.com/yi.xu/workspace/models"
 TFDET="${ROOT}/research/object_detection"
-PIPELINE_CONFIG="${TFDET}/samples/configs/ssdlite_mobilenet_v2_coco.config"
-WORKSPACE="${ROOT}/workspace/det"
+WORKSPACE="${ROOT}/workspace/det/oid"
+PIPELINE_CONFIG="${WORKSPACE}/pipeline.config"
 TRAIN_DIR="${WORKSPACE}/train"
 
-CKPT="${TRAIN_DIR}/model.ckpt-123164"
+CKPT="${TRAIN_DIR}/model.ckpt-50000"
 DEPLOY="${TRAIN_DIR}/deploy"
 mkdir -p ${DEPLOY}
 
@@ -27,7 +27,7 @@ python ${TFDET}/export_inference_graph.py \
     --output_directory=${DEPLOY}
 
 
-python ${WORKSPACE}/my_graph_utils/pb2pbtxt.py \
+python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
     --pb_path=${pb_path} \
     --log_dir=${log_dir} \
     --pbtxt_name=${pbtxt_name}

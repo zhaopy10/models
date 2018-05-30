@@ -744,12 +744,14 @@ class ConvolutionalBoxPredictor(BoxPredictor):
         combined_feature_map_shape = (shape_utils.
                                       combined_static_and_dynamic_shape(
                                           image_feature))
+#        print('box_encodings', box_encodings)  # (24, 10, 10, 24)
         box_encodings = tf.reshape(
             box_encodings, tf.stack([combined_feature_map_shape[0],
                                      combined_feature_map_shape[1] *
                                      combined_feature_map_shape[2] *
                                      num_predictions_per_location,
                                      1, self._box_code_size]))
+#        print('box_encodings', box_encodings)  # (24, 600, 1, 4)
         box_encodings_list.append(box_encodings)
         class_predictions_with_background = tf.reshape(
             class_predictions_with_background,

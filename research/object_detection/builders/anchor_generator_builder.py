@@ -82,6 +82,10 @@ def build(anchor_generator_config):
   elif anchor_generator_config.WhichOneof(
       'anchor_generator_oneof') == 'multiscale_anchor_generator':
     cfg = anchor_generator_config.multiscale_anchor_generator
+
+    print('########builders/anchor_generator_builder.py########', 
+          cfg.min_level, cfg.max_level, cfg.anchor_scale, cfg.scales_per_octave)
+
     return multiscale_grid_anchor_generator.MultiscaleGridAnchorGenerator(
         cfg.min_level,
         cfg.max_level,

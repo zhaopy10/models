@@ -251,7 +251,8 @@ def batch_multiclass_non_max_suppression(boxes,
     ValueError: if `q` in boxes.shape is not 1 or not equal to number of
       classes as inferred from scores.shape.
   """
-  q = boxes.shape[2].value
+  q = boxes.shape[2].value  # q = 1
+
   num_classes = scores.shape[2].value
   if q != 1 and q != num_classes:
     raise ValueError('third dimension of boxes must be either 1 or equal '
@@ -275,6 +276,7 @@ def batch_multiclass_non_max_suppression(boxes,
     # valid.
     if num_valid_boxes is None:
       num_valid_boxes = tf.ones([batch_size], dtype=tf.int32) * num_anchors
+#      print('### num_valid_boxes is None ###')
 
     # If masks aren't provided, create dummy masks so we can only have one copy
     # of _single_image_nms_fn and discard the dummy masks after map_fn.
@@ -289,8 +291,13 @@ def batch_multiclass_non_max_suppression(boxes,
           tf.reduce_max(boxes[:, :, :, 2]),
           tf.reduce_max(boxes[:, :, :, 3])
       ])
+#      print('### core/post_processing.py: clip_window is None ###')
+#    else:
+#      print('### core/post_processing.py: clip_window is not None ###')
+
     if clip_window.shape.ndims == 1:
       clip_window = tf.tile(tf.expand_dims(clip_window, 0), [batch_size, 1])
+#      print('### clip_window.shape.ndims == 1 ###')
 
     if additional_fields is None:
       additional_fields = {}
@@ -346,9 +353,14 @@ def batch_multiclass_non_max_suppression(boxes,
           for key, value in zip(additional_fields, args[4:-1])
       }
       per_image_num_valid_boxes = args[-1]
+
+      # get the first "per_image_num_valid_boxes" boxed and drop the rest,
+      # then "per_image_boxes" turns into the shape of [per_image_num_valid_boxes, q, 4]
       per_image_boxes = tf.reshape(
           tf.slice(per_image_boxes, 3 * [0],
                    tf.stack([per_image_num_valid_boxes, -1, -1])), [-1, q, 4])
+
+      # do the same slicing as above for "per_image_scores" and "per_image_masks"
       per_image_scores = tf.reshape(
           tf.slice(per_image_scores, [0, 0],
                    tf.stack([per_image_num_valid_boxes, -1])),
