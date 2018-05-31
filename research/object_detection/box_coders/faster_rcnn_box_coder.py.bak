@@ -104,24 +104,73 @@ class FasterRcnnBoxCoder(box_coder.BoxCoder):
     """
 
 #    print('########### decode ############')
-    ycenter_a, xcenter_a, ha, wa = anchors.get_center_coordinates_and_sizes()
+#    ycenter_a, xcenter_a, ha, wa = anchors.get_center_coordinates_and_sizes()
+
+    deploy_anchors = anchors.get_center_coordinates_and_sizes()
+    deploy_anchors = tf.identity(deploy_anchors, name='deploy_anchors')
+    print('### deploy_anchors: ', deploy_anchors)
+
+#    ycenter_a, xcenter_a, ha, wa = deploy_anchors
+    ycenter_a = tf.squeeze(tf.slice(deploy_anchors, [0,0], [1,-1]))
+    xcenter_a = tf.squeeze(tf.slice(deploy_anchors, [1,0], [1,-1]))
+    ha = tf.squeeze(tf.slice(deploy_anchors, [2,0], [1,-1]))
+    wa = tf.squeeze(tf.slice(deploy_anchors, [3,0], [1,-1]))
 
     # rel_codes.shape = (1917,4)
     ty, tx, th, tw = tf.unstack(tf.transpose(rel_codes))
+
+#    ty_slice_mask = tf.concat([tf.ones([1917,1]), 
+#                               tf.zeros([1917,1]), 
+#                               tf.zeros([1917,1]),
+#                               tf.zeros([1917,1])], axis=1)
+#    ty = tf.reduce_sum(tf.multiply(rel_codes, ty_slice_mask), 1)
+#
+#    tx_slice_mask = tf.concat([tf.zeros([1917,1]), 
+#                               tf.ones([1917,1]), 
+#                               tf.zeros([1917,1]),
+#                               tf.zeros([1917,1])], axis=1)
+#    tx = tf.reduce_sum(tf.multiply(rel_codes, tx_slice_mask), 1)
+#
+#    th_slice_mask = tf.concat([tf.zeros([1917,1]), 
+#                               tf.zeros([1917,1]), 
+#                               tf.ones([1917,1]),
+#                               tf.zeros([1917,1])], axis=1)
+#    th = tf.reduce_sum(tf.multiply(rel_codes, th_slice_mask), 1)
+#
+#    tw_slice_mask = tf.concat([tf.zeros([1917,1]), 
+#                               tf.zeros([1917,1]), 
+#                               tf.zeros([1917,1]),
+#                               tf.ones([1917,1])], axis=1)
+#    tw = tf.reduce_sum(tf.multiply(rel_codes, tw_slice_mask), 1)
 
     if self._scale_factors:
       ty /= self._scale_factors[0]  # 10.0
       tx /= self._scale_factors[1]  # 10.0
       th /= self._scale_factors[2]  # 5.0
       tw /= self._scale_factors[3]  # 5.0
+
     w = tf.exp(tw) * wa
     h = tf.exp(th) * ha
+
     ycenter = ty * ha + ycenter_a
     xcenter = tx * wa + xcenter_a
+
     ymin = ycenter - h / 2.
     xmin = xcenter - w / 2.
     ymax = ycenter + h / 2.
     xmax = xcenter + w / 2.
 
+#    tf.squeeze(ymin)
+#    tf.squeeze(xmin)
+#    tf.squeeze(ymax)
+#    tf.squeeze(xmax)
+
     return box_list.BoxList(tf.transpose(tf.stack([ymin, xmin, ymax, xmax])))
+#    ymin = tf.expand_dims(ymin, 1)
+#    xmin = tf.expand_dims(xmin, 1)
+#    ymax = tf.expand_dims(ymax, 1)
+#    xmax = tf.expand_dims(xmax, 1)
+#
+#    return box_list.BoxList(tf.concat([ymin, xmin, ymax, xmax], 1))
+
 

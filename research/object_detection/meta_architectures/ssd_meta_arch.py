@@ -31,10 +31,8 @@ from object_detection.utils import ops
 from object_detection.utils import shape_utils
 from object_detection.utils import visualization_utils
 
-from object_detection.utils import config_util
-
 slim = tf.contrib.slim
-FLAGS = tf.app.flags.FLAGS
+
 
 class SSDFeatureExtractor(object):
   """SSD Feature Extractor definition."""
@@ -309,25 +307,23 @@ class SSDMetaArch(model.DetectionModel):
     with tf.name_scope('Preprocessor'):
       # TODO(jonathanhuang): revisit whether to always use batch size as
       # the number of parallel iterations vs allow for dynamic batching.
-#      outputs = shape_utils.static_or_dynamic_map_fn(
-#          self._image_resizer_fn,
-#          elems=inputs,
-#          dtype=[tf.float32, tf.int32])
-#      resized_inputs = outputs[0]
-#      true_image_shapes = outputs[1]
+      outputs = shape_utils.static_or_dynamic_map_fn(
+          self._image_resizer_fn,
+          elems=inputs,
+          dtype=[tf.float32, tf.int32])
+      resized_inputs = outputs[0]
+      true_image_shapes = outputs[1]
 
-#      return (self._feature_extractor.preprocess(resized_inputs),
-#              true_image_shapes)
+      return (self._feature_extractor.preprocess(resized_inputs),
+              true_image_shapes)
 
 
-      resized_inputs = tf.image.resize_bilinear(inputs, [300, 300])
-      pre_inputs = (2.0 / 255.0) * resized_inputs - 1.0
-      batch_size = tf.shape(inputs)[0]
-      true_image_shapes = [[300, 300, 3]] * batch_size
-#      print(pre_inputs)
-#      print(true_image_shapes)
-
-      return (pre_inputs, true_image_shapes)
+#      resized_inputs = tf.image.resize_bilinear(inputs, [300, 300])
+#      pre_inputs = (2.0 / 255.0) * resized_inputs - 1.0
+#      batch_size = tf.shape(inputs)[0]
+#      true_image_shapes = [[300, 300, 3]] * batch_size
+#
+#      return (pre_inputs, true_image_shapes)
 
 
   def _compute_clip_window(self, preprocessed_images, true_image_shapes):
@@ -414,9 +410,6 @@ class SSDMetaArch(model.DetectionModel):
       feature_map_spatial_dims = self._get_feature_map_spatial_dims(
           feature_maps)
 
-#      print('##########meta_architectures/ssd_meta_arch.py############')
-#      print(feature_map_spatial_dims)
-
       image_shape = shape_utils.combined_static_and_dynamic_shape(
           preprocessed_inputs)
       self._anchors = box_list_ops.concatenate(
@@ -426,18 +419,10 @@ class SSDMetaArch(model.DetectionModel):
               im_width=image_shape[2]))
       prediction_dict = self._box_predictor.predict(
           feature_maps, self._anchor_generator.num_anchors_per_location())
-
-##############################################################################
       box_encodings = tf.squeeze(
           tf.concat(prediction_dict['box_encodings'], axis=1), axis=2)
-
       class_predictions_with_background = tf.concat(
           prediction_dict['class_predictions_with_background'], axis=1)
-
-      print(box_encodings)  # shape=(batch_size, 1917, 4)
-      print(class_predictions_with_background)  # shape=(batch_size, 1917, 91)
-##############################################################################
-
       predictions_dict = {
           'preprocessed_inputs': preprocessed_inputs,
           'box_encodings': box_encodings,
@@ -465,131 +450,6 @@ class SSDMetaArch(model.DetectionModel):
             feature_map) for feature_map in feature_maps
     ]
     return [(shape[1], shape[2]) for shape in feature_map_shapes]
-
-  def my_postprocess(self, prediction_dict, true_image_shapes):
-    with tf.name_scope('Postprocessor'):
-      preprocessed_images = prediction_dict['preprocessed_inputs']
-      box_encodings = prediction_dict['box_encodings']
-      class_predictions = prediction_dict['class_predictions_with_background']
-      detection_boxes, detection_keypoints = self._batch_decode(box_encodings)
-
-      # the expanded dimension is for q, so not needed for me here
-#      detection_boxes = tf.expand_dims(detection_boxes, axis=2)  # shape=(1,1917,1,4)
-
-      detection_scores_with_background = self._score_conversion_fn(
-          class_predictions)
-
-#      detection_scores = tf.slice(detection_scores_with_background, [0, 0, 1],
-#                                  [-1, -1, -1])
-      detection_scores = tf.identity(detection_scores_with_background)
-
-#      clip_window = self._compute_clip_window(
-#          preprocessed_images, true_image_shapes)
-
-#      class_predictions.set_shape((1, 1917, 91))
-      print('### detection_boxes: ', detection_boxes)  # shape=(1, 1917, 4)
-      print('### detection_scores: ', detection_scores)  # shape=(1, 1917, 90)
-
-      detection_boxes = tf.expand_dims(detection_boxes, axis=2)  # shape=(1,1917,1,4)
-      detection_scores = tf.expand_dims(detection_scores, axis=2)  # shape=(1,1917,1,90)
-
-      num_detections = tf.shape(detection_boxes)[1]
-#      num_detections = tf.identity(1917)
-      prenms_boxes = tf.identity(detection_boxes)
-      prenms_scores = tf.reduce_max(detection_scores, axis=3, keepdims=True)
-      prenms_classes = tf.argmax(detection_scores, axis=3, 
-                                 output_type=tf.int32)
-      prenms_classes = tf.expand_dims(prenms_classes, axis=3)
-
-      print('### prenms_boxes: ', prenms_boxes)
-      print('### prenms_scores: ', prenms_scores)
-      print('### prenms_classes: ', prenms_classes)
-      print('### num_detections: ', num_detections)
-
-#      prenms_boxes.set_shape((1, 1917, 4))
-#      prenms_scores.set_shape((1, 1917, 1))
-#      prenms_classes.set_shape((1, 1917, 1))
-
-      detection_dict = {
-          fields.DetectionResultFields.detection_boxes: prenms_boxes,
-          fields.DetectionResultFields.detection_scores: prenms_scores,
-          fields.DetectionResultFields.detection_classes: prenms_classes,
-          fields.DetectionResultFields.num_detections:
-              tf.to_float(num_detections)
-      }
-
-      return detection_dict
-
-
-#  def batch_pre_nms_converter(boxes, scores, 
-#                        clip_window=None, nms_config=None,
-#                        num_valid_boxes=None):
-#    if nms_config == None:
-#      configs = config_util.get_configs_from_pipeline_file(FLAGS.pipeline_config_path)
-#      model_config = configs['model']
-#      nms_config = model_config.ssd.post_processing.batch_non_max_suppression
-#
-#    num_classes = scores.shape[2].value
-#    boxes_shape = boxes.shape
-#    batch_size = boxes_shape[0].value
-#    num_anchors = boxes_shape[1].value
-#
-#    if batch_size is None:
-#      batch_size = tf.shape(boxes)[0]
-#    if num_anchors is None:
-#      num_anchors = tf.shape(boxes)[1]
-#    
-#    num_nmsed_outputs = 4
-#
-#    if num_valid_boxes is None:
-#      num_valid_boxes = tf.ones([batch_size], dtype=tf.int32) * num_anchors
-#
-#    per_image_boxes = boxes[0]
-#    per_image_scores = scores[0]
-#    per_image_clip_window = clip_window[0]
-#    per_image_num_valid_boxes = num_valid_boxes[0]
-#
-#    per_image_boxes = tf.reshape(
-#        tf.slice(per_image_boxes, 3 * [0],
-#                 tf.stack([per_image_num_valid_boxes, -1, -1])), [-1, q, 4])
-#
-#    per_image_scores = tf.reshape(
-#        tf.slice(per_image_scores, [0, 0],
-#                 tf.stack([per_image_num_valid_boxes, -1])),
-#        [-1, num_classes])
-#
-#    per_image_masks = None
-#
-#    unnmsed_boxlist = pre_nms_converter(
-#        per_image_boxes,
-#        per_image_scores,
-#        score_thresh,
-#        iou_thresh,
-#        max_size_per_class,
-#        max_total_size,
-#        clip_window=per_image_clip_window,
-#        change_coordinate_frame=change_coordinate_frame)
-#
-#    return [1,2,3,4]
-#
-#
-#  def pre_nms_converter(boxes, scores, score_thresh, 
-#                        iou_thres, max_size_per_class, 
-#                        max_total_size=0, clip_window=None, 
-#                        change_coordinate_frame=False, scope=None):
-#    with tf.name_scope(scope, 'pre_nms_converter'):
-#      num_boxes = tf.shape(boxes)[0]
-#      num_scores = tf.shape(scores)[0]
-#      num_classes = scores.get_shape()[1]
-#
-#      selected_boxes_list = []
-#      per_class_boxes_list = tf.unstack(boxes, axis=1)
-#
-#      boxes_ids = (range(num_classes) if len(per_class_boxes_list) > 1
-#                   else [0] * num_classes.value)
-#
-#   return None 
-
 
   def postprocess(self, prediction_dict, true_image_shapes):
     """Converts prediction tensors to final detections.
@@ -630,11 +490,6 @@ class SSDMetaArch(model.DetectionModel):
       ValueError: if prediction_dict does not contain `box_encodings` or
         `class_predictions_with_background` fields.
     """
-
-    if not self._is_training:
-      return self.my_postprocess(prediction_dict, true_image_shapes)
-
-
     if ('box_encodings' not in prediction_dict or
         'class_predictions_with_background' not in prediction_dict):
       raise ValueError('prediction_dict does not contain expected entries.')
@@ -647,7 +502,6 @@ class SSDMetaArch(model.DetectionModel):
 
       detection_scores_with_background = self._score_conversion_fn(
           class_predictions)
-
       detection_scores = tf.slice(detection_scores_with_background, [0, 0, 1],
                                   [-1, -1, -1])
       additional_fields = None
@@ -673,7 +527,6 @@ class SSDMetaArch(model.DetectionModel):
           fields.BoxListFields.keypoints in nmsed_additional_fields):
         detection_dict[fields.DetectionResultFields.detection_keypoints] = (
             nmsed_additional_fields[fields.BoxListFields.keypoints])
-
       return detection_dict
 
   def loss(self, prediction_dict, true_image_shapes, scope=None):
@@ -971,21 +824,13 @@ class SSDMetaArch(model.DetectionModel):
     combined_shape = shape_utils.combined_static_and_dynamic_shape(
         box_encodings)
     batch_size = combined_shape[0]
-
-#    tiled_anchor_boxes = tf.tile(
-#        tf.expand_dims(self.anchors.get(), 0), [batch_size, 1, 1])
-    tiled_anchor_boxes = tf.expand_dims(self.anchors.get(), 0)
-    if self._is_training:  # seems not handling the validation case
-      tiled_anchor_boxes = tf.concat([tiled_anchor_boxes] * batch_size, 0)
-
+    tiled_anchor_boxes = tf.tile(
+        tf.expand_dims(self.anchors.get(), 0), [batch_size, 1, 1])
     tiled_anchors_boxlist = box_list.BoxList(
         tf.reshape(tiled_anchor_boxes, [-1, 4]))
-
-    print('### batch_decode/box_encodings: ', box_encodings)  # shape=(1,1917,4)
     decoded_boxes = self._box_coder.decode(
         tf.reshape(box_encodings, [-1, self._box_coder.code_size]),
         tiled_anchors_boxlist)
-
     decoded_keypoints = None
     if decoded_boxes.has_field(fields.BoxListFields.keypoints):
       decoded_keypoints = decoded_boxes.get_field(
@@ -994,10 +839,8 @@ class SSDMetaArch(model.DetectionModel):
       decoded_keypoints = tf.reshape(
           decoded_keypoints,
           tf.stack([combined_shape[0], combined_shape[1], num_keypoints, 2]))
-
     decoded_boxes = tf.reshape(decoded_boxes.get(), tf.stack(
         [combined_shape[0], combined_shape[1], 4]))
-
     return decoded_boxes, decoded_keypoints
 
   def restore_map(self,

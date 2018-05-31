@@ -19,14 +19,35 @@ pb_path="${DEPLOY}/frozen_inference_graph.pb"
 pbtxt_name="frozen_inference_graph.pbtxt"
 
 input_node="image_tensor:0"
-output_node="detection_boxes:0,detection_scores:0,detection_classes:0,num_detections:0"
+output_node="box_encodings:0,class_indices:0,score_sigmoids:0,anchors:0"
 
-######################################
+#######################################
+####### export for tf inference #######
+#input_node="image_tensor:0"
+#output_node="detection_boxes:0,detection_scores:0,detection_classes:0,num_detections:0"
+#
+#python ${TFDET}/export_inference_graph.py \
+#    --input_type="image_tensor" \
+#    --pipeline_config_path=${PIPELINE_CONFIG} \
+#    --trained_checkpoint_prefix=${CKPT} \
+#    --output_directory=${DEPLOY}
+#
+#python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
+#    --pb_path=${pb_path} \
+#    --log_dir=${DEPLOY} \
+#    --pbtxt_name=${pbtxt_name}
+########################################
+
+##################################
+###### deploy for mobile app ######
+
 python ${TFDET}/export_inference_graph.py \
     --input_type="image_tensor" \
     --pipeline_config_path=${PIPELINE_CONFIG} \
     --trained_checkpoint_prefix=${CKPT} \
-    --output_directory=${DEPLOY}
+    --output_directory=${DEPLOY} \
+    --deploy=True \
+    --output_anchors=True
 
 python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
     --pb_path=${pb_path} \
@@ -34,10 +55,11 @@ python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
     --pbtxt_name=${pbtxt_name}
 
 
-#output_node="Squeeze:0,concat_1:0"
+input_node="Preprocessor/sub:0"
+output_node="box_encodings:0,class_indices:0,score_sigmoids:0"
 #ml_output_node=${output_node}
-output_node="detection_boxes:0,detection_scores:0,detection_classes:0"
-ml_output_node='all'
+ml_input_node="Preprocessor/sub:0"
+ml_output_node="all"
 
 ${TFBAZEL}/tensorflow/tools/graph_transforms/transform_graph \
     --in_graph=${DEPLOY}/frozen_inference_graph.pb \
@@ -58,7 +80,7 @@ python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
 python ${WORKSPACE}/../tf_coreml_utils/tf2coreml.py \
     --input_pb_file=${DEPLOY}/deploy_graph.pb \
     --output_mlmodel=${DEPLOY}/deploy_graph.mlmodel \
-    --input_node_name=${input_node} \
+    --input_node_name=${ml_input_node} \
     --output_node_name=${ml_output_node}
 
 

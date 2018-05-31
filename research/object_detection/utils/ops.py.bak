@@ -109,6 +109,7 @@ def meshgrid(x, y):
 
     xgrid = tf.tile(tf.reshape(x, x_exp_shape), y_exp_shape)
     ygrid = tf.tile(tf.reshape(y, y_exp_shape), x_exp_shape)
+
     new_shape = y.get_shape().concatenate(x.get_shape())
     xgrid.set_shape(new_shape)
     ygrid.set_shape(new_shape)

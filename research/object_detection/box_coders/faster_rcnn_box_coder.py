@@ -69,8 +69,6 @@ class FasterRcnnBoxCoder(box_coder.BoxCoder):
       [ty, tx, th, tw].
     """
 
-#    print('########### encode ############')
-
     # Convert anchors to the center coordinate representation.
     ycenter_a, xcenter_a, ha, wa = anchors.get_center_coordinates_and_sizes()
     ycenter, xcenter, h, w = boxes.get_center_coordinates_and_sizes()
@@ -103,35 +101,10 @@ class FasterRcnnBoxCoder(box_coder.BoxCoder):
       boxes: BoxList holding N bounding boxes.
     """
 
-#    print('########### decode ############')
-
     ycenter_a, xcenter_a, ha, wa = anchors.get_center_coordinates_and_sizes()
 
     # rel_codes.shape = (1917,4)
-#    ty, tx, th, tw = tf.unstack(tf.transpose(rel_codes))
-    ty_slice_mask = tf.concat([tf.ones([1917,1]), 
-                               tf.zeros([1917,1]), 
-                               tf.zeros([1917,1]),
-                               tf.zeros([1917,1])], axis=1)
-    ty = tf.reduce_sum(tf.multiply(rel_codes, ty_slice_mask), 1)
-
-    tx_slice_mask = tf.concat([tf.zeros([1917,1]), 
-                               tf.ones([1917,1]), 
-                               tf.zeros([1917,1]),
-                               tf.zeros([1917,1])], axis=1)
-    tx = tf.reduce_sum(tf.multiply(rel_codes, tx_slice_mask), 1)
-
-    th_slice_mask = tf.concat([tf.zeros([1917,1]), 
-                               tf.zeros([1917,1]), 
-                               tf.ones([1917,1]),
-                               tf.zeros([1917,1])], axis=1)
-    th = tf.reduce_sum(tf.multiply(rel_codes, th_slice_mask), 1)
-
-    tw_slice_mask = tf.concat([tf.zeros([1917,1]), 
-                               tf.zeros([1917,1]), 
-                               tf.zeros([1917,1]),
-                               tf.ones([1917,1])], axis=1)
-    tw = tf.reduce_sum(tf.multiply(rel_codes, tw_slice_mask), 1)
+    ty, tx, th, tw = tf.unstack(tf.transpose(rel_codes))
 
     if self._scale_factors:
       ty /= self._scale_factors[0]  # 10.0
@@ -147,12 +120,5 @@ class FasterRcnnBoxCoder(box_coder.BoxCoder):
     ymax = ycenter + h / 2.
     xmax = xcenter + w / 2.
 
-#    return box_list.BoxList(tf.transpose(tf.stack([ymin, xmin, ymax, xmax])))
-    ymin = tf.expand_dims(ymin, 1)
-    xmin = tf.expand_dims(xmin, 1)
-    ymax = tf.expand_dims(ymax, 1)
-    xmax = tf.expand_dims(xmax, 1)
-
-    return box_list.BoxList(tf.concat([ymin, xmin, ymax, xmax], 1))
-
+    return box_list.BoxList(tf.transpose(tf.stack([ymin, xmin, ymax, xmax])))
 

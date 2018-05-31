@@ -32,6 +32,9 @@ from object_detection.data_decoders import tf_example_decoder
 
 slim = tf.contrib.slim
 
+from object_detection.utils import config_util
+from object_detection.core import box_list
+FLAGS = tf.app.flags.FLAGS
 
 # TODO(derekjchow): Replace with freeze_graph.freeze_graph_with_def_protos when
 # newer version of Tensorflow becomes more common.
@@ -185,6 +188,64 @@ input_placeholder_fn_map = {
 }
 
 
+def _add_output_for_deploy(preprocessed_inputs,
+                           output_tensors,
+                           output_collection_name='inference_op'):
+
+#  true_image_shapes = tf.placeholder(tf.int32, shape=[1,3], name='true_image_shapes')
+#  true_image_shapes = None
+#  preprocessed_inputs = tf.identity(preprocessed_inputs, 
+#                                   name='preprocessed_inputs')
+
+  box_encodings = tf.expand_dims(output_tensors['box_encodings'], axis=2)
+
+  detection_scores_with_background = tf.expand_dims(
+      output_tensors['class_predictions_with_background'], axis=2) # (?, 1917, 1, 91)
+  score_sigmoids = tf.reduce_max(
+      detection_scores_with_background, axis=3, keepdims=True)
+  configs = config_util.get_configs_from_pipeline_file(FLAGS.pipeline_config_path)
+  model_config = configs['model']
+  logit_scale = model_config.ssd.post_processing.logit_scale
+  score_sigmoids = tf.realdiv(score_sigmoids, logit_scale)
+  score_sigmoids = tf.sigmoid(score_sigmoids)
+
+  class_indices = tf.argmax(
+      detection_scores_with_background, axis=3, output_type=tf.int32)
+  class_indices = tf.expand_dims(class_indices, axis=3)
+
+  outputs = {}
+  outputs['box_encodings'] = tf.identity(
+      box_encodings, name='box_encodings')
+  outputs['score_sigmoids'] = tf.identity(
+      score_sigmoids, name='score_sigmoids')
+  outputs['class_indices'] = tf.identity(
+      class_indices, name='class_indices')
+
+  print('### box_encodings: ', box_encodings)
+  print('### class_sigmoids: ', score_sigmoids)
+  print('### class_indices: ', class_indices)
+
+  if FLAGS.output_anchors:
+    tiled_anchor_boxes = tf.tile(
+        tf.expand_dims(output_tensors['anchors'], 0), [1, 1, 1])
+    tiled_anchors_boxlist = box_list.BoxList(
+        tf.reshape(tiled_anchor_boxes, [-1, 4]))
+    ycenter_a, xcenter_a, ha, wa = tiled_anchors_boxlist.get_center_coordinates_and_sizes()
+    ycenter_a = tf.expand_dims(ycenter_a, axis=1)
+    xcenter_a = tf.expand_dims(xcenter_a, axis=1)
+    ha = tf.expand_dims(ha, axis=1)
+    wa = tf.expand_dims(wa, axis=1)
+    anchor_centers_sizes = tf.concat([ycenter_a, xcenter_a, ha, wa], axis=1)
+    outputs['anchors'] = tf.identity(
+        anchor_centers_sizes, name='anchors')
+    print('### anchors: ', anchor_centers_sizes)
+
+  for output_key in outputs:
+    tf.add_to_collection(output_collection_name, outputs[output_key])
+
+  return outputs
+
+
 def _add_output_tensor_nodes(postprocessed_tensors,
                              output_collection_name='inference_op'):
   """Adds output nodes for detection boxes and scores.
@@ -328,13 +389,20 @@ def _get_outputs_from_inputs(input_tensors, detection_model,
                              output_collection_name):
   inputs = tf.to_float(input_tensors)
   preprocessed_inputs, true_image_shapes = detection_model.preprocess(inputs)
+
   output_tensors = detection_model.predict(
       preprocessed_inputs, true_image_shapes)
+
   postprocessed_tensors = detection_model.postprocess(
       output_tensors, true_image_shapes)
-  return _add_output_tensor_nodes(postprocessed_tensors,
-                                  output_collection_name)
 
+  ### by Yi Xu
+  if not FLAGS.deploy:
+    return _add_output_tensor_nodes(postprocessed_tensors,
+                                    output_collection_name)
+  else:
+    return _add_output_for_deploy(preprocessed_inputs,
+                                  output_tensors)
 
 def _build_detection_graph(input_type, detection_model, input_shape,
                            output_collection_name, graph_hook_fn):

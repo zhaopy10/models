@@ -170,20 +170,34 @@ def tile_anchors(grid_height,
   Returns:
     a BoxList holding a collection of N anchor boxes
   """
-
   ratio_sqrts = tf.sqrt(aspect_ratios)
+#  ratio_sqrts = tf.identity(aspect_ratios)
   heights = scales / ratio_sqrts * base_anchor_size[0]  # [0.2 / 1.0 * 1.0, ...]
   widths = scales * ratio_sqrts * base_anchor_size[1]
 
-  # Get a grid of box centers
-  y_centers = tf.to_float(tf.range(grid_height))  # [0, 1, ..., 9]
-  y_centers = y_centers * anchor_stride[0] + anchor_offset[0]  # [3*1.0/10+0.5/10, ...]
-  x_centers = tf.to_float(tf.range(grid_width))
-  x_centers = x_centers * anchor_stride[1] + anchor_offset[1]
-  x_centers, y_centers = ops.meshgrid(x_centers, y_centers)
+  print('### ratio_sqrts: ', ratio_sqrts)
 
-  widths_grid, x_centers_grid = ops.meshgrid(widths, x_centers)
-  heights_grid, y_centers_grid = ops.meshgrid(heights, y_centers)
+  # Get a grid of box centers
+  range_dict = {
+    1:   [0],
+    2:   [0, 1],
+    3:   [0, 1, 2],
+    5:   [0, 1, 2, 3, 4],
+    10:  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    19:  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+  }
+
+#  y_centers = tf.to_float(tf.range(grid_height))  # [0, 1, ..., 9]
+  y_centers = tf.to_float(range_dict[grid_height])
+  y_centers = y_centers * anchor_stride[0] + anchor_offset[0]  # [3*1.0/10+0.5/10, ...]
+#  x_centers = tf.to_float(tf.range(grid_width))
+  x_centers = tf.to_float(range_dict[grid_height])
+  x_centers = x_centers * anchor_stride[1] + anchor_offset[1]
+
+  x_centers, y_centers = my_meshgrid(x_centers, y_centers, grid_height, 1)  # ops.meshgrid
+
+  widths_grid, x_centers_grid = my_meshgrid(widths, x_centers, grid_height, 2)  # ops.meshgrid
+  heights_grid, y_centers_grid = my_meshgrid(heights, y_centers, grid_height, 2)  # ops.meshgrid
   bbox_centers = tf.stack([y_centers_grid, x_centers_grid], axis=3)
   bbox_sizes = tf.stack([heights_grid, widths_grid], axis=3)
   bbox_centers = tf.reshape(bbox_centers, [-1, 2])
@@ -191,6 +205,37 @@ def tile_anchors(grid_height,
   bbox_corners = _center_size_bbox_to_corners_bbox(bbox_centers, bbox_sizes)
   return box_list.BoxList(bbox_corners)
 
+def my_meshgrid(x, y, grid_size, phase):
+  with tf.name_scope('Meshgrid'):
+    x = tf.convert_to_tensor(x)
+    y = tf.convert_to_tensor(y)
+    x_exp_shape = ops.expanded_shape(tf.shape(x), 0, tf.rank(y))
+    y_exp_shape = ops.expanded_shape(tf.shape(y), tf.rank(y), tf.rank(x))
+#    x_exp_shape = [1] + tf.shape(x)
+#    y_exp_shape = tf.shape(y) + [1]
+
+#    xgrid = tf.tile(tf.reshape(x, x_exp_shape), y_exp_shape)
+#    ygrid = tf.tile(tf.reshape(y, y_exp_shape), x_exp_shape)
+
+    x_reshaped = tf.reshape(x, x_exp_shape)
+    y_reshaped = tf.reshape(y, y_exp_shape)
+
+    if phase == 1:
+      xgrid = tf.concat([x_reshaped] * grid_size, 0)
+      ygrid = tf.concat([y_reshaped] * grid_size, 1)
+    if phase == 2:
+      xgrid = tf.concat([x_reshaped] * grid_size, 0)
+      xgrid = tf.concat([xgrid] * grid_size, 1)
+      num_scales = 6
+      if grid_size == 19:
+        num_scales = 3
+      ygrid = tf.concat([y_reshaped] * num_scales, 2)
+
+    new_shape = y.get_shape().concatenate(x.get_shape())
+    xgrid.set_shape(new_shape)
+    ygrid.set_shape(new_shape)
+
+    return xgrid, ygrid
 
 def _center_size_bbox_to_corners_bbox(centers, sizes):
   """Converts bbox center-size representation to corners representation.
