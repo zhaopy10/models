@@ -1,12 +1,12 @@
 #!/bin/bash
 
-ROOT="/home/corp.owlii.com/yi.xu/workspace/models"
+HOME="/home/corp.owlii.com/yi.xu"
+TFBAZEL="${HOME}/tensorflow/tensorflow/bazel-bin"
+ROOT="${HOME}/workspace/models"
 TFDET="${ROOT}/research/object_detection"
 WORKSPACE="${ROOT}/workspace/det/pretrained"
 PIPELINE_CONFIG="${WORKSPACE}/pipeline.config"
 TRAIN_DIR="${WORKSPACE}/train"
-HOME="/home/corp.owlii.com/yi.xu"
-TFBAZEL="${HOME}/tensorflow/tensorflow/bazel-bin"
 
 CKPT="${WORKSPACE}/coco_ckpt/model.ckpt-34205"
 DEPLOY="${TRAIN_DIR}/deploy"
