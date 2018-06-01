@@ -124,6 +124,10 @@ tf.app.flags.mark_flag_as_required('pipeline_config_path')
 tf.app.flags.mark_flag_as_required('trained_checkpoint_prefix')
 tf.app.flags.mark_flag_as_required('output_directory')
 
+flags.DEFINE_string('output_graph_name', 
+                    'frozen_inference_graph.pb', 
+                    'As mentioned.')
+
 flags.DEFINE_bool('deploy', False, 'As mentioned')
 flags.DEFINE_multi_integer('true_image_shape', [300, 300, 3], 'As mentioned')
 flags.DEFINE_bool('output_anchors', False, 'As mentioned')

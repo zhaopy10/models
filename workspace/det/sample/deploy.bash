@@ -13,7 +13,8 @@ DEPLOY="${TRAIN_DIR}/deploy"
 mkdir -p ${DEPLOY}
 
 deploy_graph_name="deploy_graph"
-deploy_input_nodes="Preprocessor/sub:0"
+deploy_input_nodes="image:0"
+#deploy_input_nodes="Preprocessor/sub:0"
 deploy_output_nodes="box_encodings:0,class_indices:0,score_sigmoids:0"
 ml_input_nodes=${deploy_input_nodes}
 #ml_output_nodes=${deploy_output_nodes}
@@ -35,7 +36,7 @@ ${TFBAZEL}/tensorflow/tools/graph_transforms/transform_graph \
     --out_graph="${DEPLOY}/${deploy_graph_name}.pb" \
     --inputs=${deploy_input_nodes} \
     --outputs=${deploy_output_nodes} \
-    --transforms='strip_unused_nodes(type=float, shape="1,300,300,3")
+    --transforms='strip_unused_nodes(type=uint8, shape="1,300,300,3")
                   remove_nodes(op=Identity, op=CheckNumerics)
                   fold_constants(ignore_errors=true)
                   fold_batch_norms
@@ -54,7 +55,6 @@ python ${WORKSPACE}/../tf_coreml_utils/tf2coreml.py \
 
 echo ""
 echo "Done with exporting CoreML model!!!"
-echo ""
 ###############################################################
 
 
@@ -82,7 +82,6 @@ python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
 
 echo ""
 echo "Done with exporting prepost model!!!"
-echo ""
 ##################################################
 
 
@@ -108,7 +107,6 @@ python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
 
 echo ""
 echo "Done with exporting tf inference model!!!"
-echo ""
 #######################################
 
 

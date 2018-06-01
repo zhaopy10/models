@@ -187,7 +187,7 @@ input_placeholder_fn_map = {
     'tf_example': _tf_example_input_placeholder,
 }
 
-
+# by Yi Xu
 def _add_output_for_deploy(preprocessed_inputs,
                            output_tensors,
                            output_collection_name='inference_op'):
@@ -387,22 +387,30 @@ def write_graph_and_checkpoint(inference_graph_def,
 
 def _get_outputs_from_inputs(input_tensors, detection_model,
                              output_collection_name):
-  inputs = tf.to_float(input_tensors)
-  preprocessed_inputs, true_image_shapes = detection_model.preprocess(inputs)
 
-  output_tensors = detection_model.predict(
-      preprocessed_inputs, true_image_shapes)
-
-  postprocessed_tensors = detection_model.postprocess(
-      output_tensors, true_image_shapes)
-
-  ### by Yi Xu
   if not FLAGS.deploy:
+    inputs = tf.to_float(input_tensors)
+    preprocessed_inputs, true_image_shapes = detection_model.preprocess(inputs)
+  
+    output_tensors = detection_model.predict(
+        preprocessed_inputs, true_image_shapes)
+  
+    postprocessed_tensors = detection_model.postprocess(
+        output_tensors, true_image_shapes)
+
     return _add_output_tensor_nodes(postprocessed_tensors,
                                     output_collection_name)
-  else:
-    return _add_output_for_deploy(preprocessed_inputs,
-                                  output_tensors)
+  else: # by Yi Xu
+    preprocessed_inputs = tf.identity(input_tensors, name='image')
+    preprocessed_inputs = tf.reshape(preprocessed_inputs, [-1, 300, 300, 3])
+    preprocessed_inputs = tf.to_float(preprocessed_inputs)
+    preprocessed_inputs = preprocessed_inputs * 2.0 / 255.0 - 1.0
+
+    output_tensors = detection_model.predict(
+        preprocessed_inputs, None)
+
+    return _add_output_for_deploy(preprocessed_inputs, output_tensors, 
+                                  output_collection_name)
 
 def _build_detection_graph(input_type, detection_model, input_shape,
                            output_collection_name, graph_hook_fn):
@@ -442,7 +450,8 @@ def _export_inference_graph(input_type,
   """Export helper."""
   tf.gfile.MakeDirs(output_directory)
   frozen_graph_path = os.path.join(output_directory,
-                                   'frozen_inference_graph.pb')
+                                   FLAGS.output_graph_name)
+#                                   'frozen_inference_graph.pb')
   saved_model_path = os.path.join(output_directory, 'saved_model')
   model_path = os.path.join(output_directory, 'model.ckpt')
 
