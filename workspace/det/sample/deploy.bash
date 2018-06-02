@@ -8,19 +8,20 @@ WORKSPACE="${ROOT}/workspace/det/pretrained"
 PIPELINE_CONFIG="${WORKSPACE}/pipeline.config"
 TRAIN_DIR="${WORKSPACE}/train"
 
-CKPT="${WORKSPACE}/coco_ckpt/model.ckpt-34205"
+#CKPT="${WORKSPACE}/coco_ckpt/model.ckpt-34205"
+CKPT="${WORKSPACE}/../ckpt/ssdlite_mobilenet_v2_coco_2018_05_09/model.ckpt"
 DEPLOY="${TRAIN_DIR}/deploy"
 mkdir -p ${DEPLOY}
 
 deploy_graph_name="deploy_graph"
 deploy_input_nodes="image:0"
-#deploy_input_nodes="Preprocessor/sub:0"
-deploy_output_nodes="box_encodings:0,class_indices:0,score_sigmoids:0"
+#deploy_output_nodes="box_encodings:0,class_indices:0,score_sigmoids:0"
+deploy_output_nodes="box_encodings:0,class_scores:0"
 ml_input_nodes=${deploy_input_nodes}
 #ml_output_nodes=${deploy_output_nodes}
 ml_output_nodes="all"
 
-###### deploy for mobile app, no pre- or post-processing ######
+####### deploy for mobile app, no pre- or post-processing ######
 echo "Exporting CoreML model..."
 pretransform_graph_name="pretransform_graph"
 python ${TFDET}/export_inference_graph.py \
@@ -53,16 +54,14 @@ python ${WORKSPACE}/../tf_coreml_utils/tf2coreml.py \
     --input_node_name=${ml_input_nodes} \
     --output_node_name=${ml_output_nodes}
 
-echo ""
 echo "Done with exporting CoreML model!!!"
+echo ""
 ###############################################################
 
 
 ##################################################
 ###### export graph without post-processing ######
 echo "Exporting prepost graph..."
-#tf_input_node="image_tensor:0"
-#output_node="box_encodings:0,class_indices:0,score_sigmoids:0,anchors:0"
 prepost_graph_name="prepost_graph"
 PREPOST_DEPLOY="${DEPLOY}/prepost"
 
@@ -80,16 +79,14 @@ python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
     --log_dir=${PREPOST_DEPLOY} \
     --pbtxt_name="${prepost_graph_name}.pbtxt"
 
-echo ""
 echo "Done with exporting prepost model!!!"
+echo ""
 ##################################################
 
 
-######################################
+#######################################
 ###### export for tf inference #######
 echo "Exporting tf graph for inference..."
-#tf_input_node="image_tensor:0"
-#tfoutput_node="detection_boxes:0,detection_scores:0,detection_classes:0,num_detections:0"
 tf_graph_name="tf_inference_graph"
 TF_DEPLOY="${DEPLOY}/tf_inference"
 
@@ -105,9 +102,8 @@ python ${WORKSPACE}/../my_graph_utils/pb2pbtxt.py \
     --log_dir=${TF_DEPLOY} \
     --pbtxt_name="${tf_graph_name}.pbtxt"
 
-echo ""
 echo "Done with exporting tf inference model!!!"
-#######################################
+########################################
 
 
 
