@@ -405,7 +405,6 @@ def _get_outputs_from_inputs(input_tensors, detection_model,
                                     output_collection_name)
   else: # by Yi Xu
     preprocessed_inputs = tf.identity(input_tensors, name='image')
-#    preprocessed_inputs = tf.reshape(preprocessed_inputs, [-1, 300, 300, 3])
     preprocessed_inputs = tf.image.resize_images(
         preprocessed_inputs, [300, 300])
     preprocessed_inputs = tf.to_float(preprocessed_inputs)

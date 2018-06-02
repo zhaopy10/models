@@ -56,6 +56,8 @@ def create_input_queue(batch_size_per_clone, create_tensor_dict_fn,
       (which hold images, boxes and targets).  To get a batch of tensor_dicts,
       call input_queue.Dequeue().
   """
+  print('batch_size_per_clone: ', batch_size_per_clone)
+
   tensor_dict = create_tensor_dict_fn()
 
   tensor_dict[fields.InputDataFields.image] = tf.expand_dims(

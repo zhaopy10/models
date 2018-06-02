@@ -40,17 +40,16 @@ output_feature_names = [FLAGS.output_node_name]
 if FLAGS.output_node_name == 'all':
   print('FLAGS.output_node_name = ', FLAGS.output_node_name)
   output_feature_names = ['box_encodings:0',
-                          'class_indices:0',
-                          'score_sigmoids:0']
-#  output_feature_names = ['concat_1:0', 'Squeeze:0']
+                          'class_scores:0']
 def main(unused_argv):
   tf_converter.convert(tf_model_path = FLAGS.input_pb_file,
                        mlmodel_path = FLAGS.output_mlmodel,
                        output_feature_names = output_feature_names,
                        image_input_names = [FLAGS.input_node_name],
                        input_name_shape_dict = {FLAGS.input_node_name : 
-                           [1,FLAGS.input_height,FLAGS.input_width,3]},
-                       add_custom_layers=True)
+                           [1,FLAGS.input_height,FLAGS.input_width,3]})
+
+#                       add_custom_layers=True)
 #                       custom_conversion_functions={'Slice': _convert_slice})
 
 #                       input_name_shape_dict = {FLAGS.input_node_name : FLAGS.input_size})

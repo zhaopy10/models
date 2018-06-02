@@ -2,9 +2,8 @@
 
 ROOT="/home/corp.owlii.com/yi.xu/workspace/models"
 TFDET="${ROOT}/research/object_detection"
-#PIPELINE_CONFIG="${TFDET}/samples/configs/ssdlite_mobilenet_v2_coco.config"
-WORKSPACE="${ROOT}/workspace/det/oid"
-PIPELINE_CONFIG="${WORKSPACE}/pipeline.config"
+WORKSPACE="${ROOT}/workspace/det/test"
+PIPELINE_CONFIG="${WORKSPACE}/ssd_mnetv2_coco.config"
 TRAIN_DIR="${WORKSPACE}/train"
 
 python ${TFDET}/train.py \
