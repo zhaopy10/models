@@ -251,6 +251,9 @@ def batch_multiclass_non_max_suppression(boxes,
     ValueError: if `q` in boxes.shape is not 1 or not equal to number of
       classes as inferred from scores.shape.
   """
+
+  print('score_thresh: ', score_thresh)
+
   q = boxes.shape[2].value  # q = 1
 
   num_classes = scores.shape[2].value

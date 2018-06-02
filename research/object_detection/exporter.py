@@ -197,34 +197,37 @@ def _add_output_for_deploy(preprocessed_inputs,
 #  preprocessed_inputs = tf.identity(preprocessed_inputs, 
 #                                   name='preprocessed_inputs')
 
-  box_encodings = tf.expand_dims(output_tensors['box_encodings'], axis=2)
+  outputs = {}
 
-  detection_scores_with_background = tf.expand_dims(
+  # prepare output of box_encodings
+  box_encodings = tf.expand_dims(output_tensors['box_encodings'], axis=2)
+  outputs['box_encodings'] = tf.identity(
+      box_encodings, name='box_encodings')
+  print('### box_encodings: ', box_encodings)
+
+  # prepare output of class_scores
+  class_scores = tf.expand_dims(
       output_tensors['class_predictions_with_background'], axis=2) # (?, 1917, 1, 91)
-  score_sigmoids = tf.reduce_max(
-      detection_scores_with_background, axis=3, keepdims=True)
+#  score_sigmoids = tf.reduce_max(
+#      detection_scores_with_background, axis=3, keepdims=True)
   configs = config_util.get_configs_from_pipeline_file(FLAGS.pipeline_config_path)
   model_config = configs['model']
   logit_scale = model_config.ssd.post_processing.logit_scale
-  score_sigmoids = tf.realdiv(score_sigmoids, logit_scale)
-  score_sigmoids = tf.sigmoid(score_sigmoids)
+  class_scores = tf.divide(class_scores, logit_scale)
+  class_scores = tf.sigmoid(class_scores)
+  outputs['class_scores'] = tf.identity(
+      class_scores, name='class_scores')
+  print('### class_scores: ', class_scores)
 
-  class_indices = tf.argmax(
-      detection_scores_with_background, axis=3, output_type=tf.int32)
-  class_indices = tf.expand_dims(class_indices, axis=3)
+  # prepare output of class_indices; depreciated
+#  class_indices = tf.argmax(
+#      detection_scores_with_background, axis=3, output_type=tf.int32)
+#  class_indices = tf.expand_dims(class_indices, axis=3)
+#  outputs['class_indices'] = tf.identity(
+#      class_indices, name='class_indices')
+#  print('### class_indices: ', class_indices)
 
-  outputs = {}
-  outputs['box_encodings'] = tf.identity(
-      box_encodings, name='box_encodings')
-  outputs['score_sigmoids'] = tf.identity(
-      score_sigmoids, name='score_sigmoids')
-  outputs['class_indices'] = tf.identity(
-      class_indices, name='class_indices')
-
-  print('### box_encodings: ', box_encodings)
-  print('### class_sigmoids: ', score_sigmoids)
-  print('### class_indices: ', class_indices)
-
+  # prepare the output of anchors
   if FLAGS.output_anchors:
     tiled_anchor_boxes = tf.tile(
         tf.expand_dims(output_tensors['anchors'], 0), [1, 1, 1])
@@ -402,7 +405,9 @@ def _get_outputs_from_inputs(input_tensors, detection_model,
                                     output_collection_name)
   else: # by Yi Xu
     preprocessed_inputs = tf.identity(input_tensors, name='image')
-    preprocessed_inputs = tf.reshape(preprocessed_inputs, [-1, 300, 300, 3])
+#    preprocessed_inputs = tf.reshape(preprocessed_inputs, [-1, 300, 300, 3])
+    preprocessed_inputs = tf.image.resize_images(
+        preprocessed_inputs, [300, 300])
     preprocessed_inputs = tf.to_float(preprocessed_inputs)
     preprocessed_inputs = preprocessed_inputs * 2.0 / 255.0 - 1.0
 
