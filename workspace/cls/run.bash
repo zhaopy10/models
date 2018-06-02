@@ -1,16 +1,16 @@
 #!/bin/bash
 
-num_clones=3        # 3
+num_clones=4        # 3
 batch_size=512      # 512
-num_steps=250000    # 250000 steps, about 295 epochs
+num_steps=12    # 250000 steps, about 295 epochs
 
 start_lr=0.045
 end_lr=0.0001
 factor=0.98
 
-SLIM="/home/popzq/workspace/models/research/slim"
-WORKSPACE="/home/popzq/workspace/models/workspace/cls"
-DATASET_DIR="/home/popzq/disk/ILSVRC2012/train"
+SLIM="/home/corp.owlii.com/yi.xu/workspace/models/research/slim"
+WORKSPACE="/home/corp.owlii.com/yi.xu/workspace/models/workspace/cls"
+DATASET_DIR="/home/corp.owlii.com/yi.xu/data/imagenet/train"
 TRAIN_DIR="${WORKSPACE}/train"
 
 python ${SLIM}/train_image_classifier.py \
