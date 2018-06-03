@@ -61,6 +61,8 @@ tf.flags.DEFINE_string('testdev_annotations_file', '',
                        'Test-dev annotations JSON file.')
 tf.flags.DEFINE_string('output_dir', '/tmp/', 'Output data directory.')
 
+tf.flags.DEFINE_bool('just_person', False, 'As mentioned.')
+
 FLAGS = flags.FLAGS
 
 tf.logging.set_verbosity(tf.logging.INFO)
@@ -130,6 +132,14 @@ def create_tf_example(image,
     if x + width > image_width or y + height > image_height:
       num_annotations_skipped += 1
       continue
+
+    # Only use person annos and ignore other labels; by Yi Xu
+    if FLAGS.just_person:
+      person_id = 1
+      category_id = int(object_annotations['category_id'])
+      if person_id != category_id:
+        continue
+
     xmin.append(float(x) / image_width)
     xmax.append(float(x + width) / image_width)
     ymin.append(float(y) / image_height)
@@ -262,11 +272,11 @@ def main(_):
       FLAGS.val_image_dir,
       val_output_path,
       FLAGS.include_masks)
-  _create_tf_record_from_coco_annotations(
-      FLAGS.testdev_annotations_file,
-      FLAGS.test_image_dir,
-      testdev_output_path,
-      FLAGS.include_masks)
+#  _create_tf_record_from_coco_annotations(
+#      FLAGS.testdev_annotations_file,
+#      FLAGS.test_image_dir,
+#      testdev_output_path,
+#      FLAGS.include_masks)
 
 
 if __name__ == '__main__':

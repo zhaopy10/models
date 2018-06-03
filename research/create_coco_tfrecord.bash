@@ -9,7 +9,7 @@ TEST_IMAGE_DIR="${DATA}/test2017"
 TRAIN_ANNOTATIONS_FILE="${ANNO}/instances_train2017.json"
 VAL_ANNOTATIONS_FILE="${ANNO}/instances_val2017.json"
 TESTDEV_ANNOTATIONS_FILE="${ANNO}/instances_test2017.json"
-OUTPUT_DIR="${DATA}/detection/tfrecord"
+OUTPUT_DIR="${DATA}/detection/person"
 
 python object_detection/dataset_tools/create_coco_tf_record.py \
     --logtostderr \
