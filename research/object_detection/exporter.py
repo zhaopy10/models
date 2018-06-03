@@ -404,9 +404,14 @@ def _get_outputs_from_inputs(input_tensors, detection_model,
     return _add_output_tensor_nodes(postprocessed_tensors,
                                     output_collection_name)
   else: # by Yi Xu
+    configs = config_util.get_configs_from_pipeline_file(FLAGS.pipeline_config_path)
+    model_config = configs['model']
+    input_height = model_config.ssd.image_resizer.fixed_shape_resizer.height
+    input_width = model_config.ssd.image_resizer.fixed_shape_resizer.width
+
     preprocessed_inputs = tf.identity(input_tensors, name='image')
     preprocessed_inputs = tf.image.resize_images(
-        preprocessed_inputs, [300, 300])
+        preprocessed_inputs, [input_height, input_width])
     preprocessed_inputs = tf.to_float(preprocessed_inputs)
     preprocessed_inputs = preprocessed_inputs * 2.0 / 255.0 - 1.0
 

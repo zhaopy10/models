@@ -4,12 +4,11 @@ HOME="/home/corp.owlii.com/yi.xu"
 TFBAZEL="${HOME}/tensorflow/tensorflow/bazel-bin"
 ROOT="${HOME}/workspace/models"
 TFDET="${ROOT}/research/object_detection"
-WORKSPACE="${ROOT}/workspace/det/test"
+WORKSPACE="${ROOT}/workspace/det/coco.512"
 PIPELINE_CONFIG="${WORKSPACE}/ssd_mnetv2_coco.config"
 TRAIN_DIR="${WORKSPACE}/train"
 
-#CKPT="${WORKSPACE}/coco_ckpt/model.ckpt-34205"
-CKPT="${WORKSPACE}/../ckpt/ssdlite_mobilenet_v2_coco_2018_05_09/model.ckpt"
+CKPT="${WORKSPACE}/ckpt/model.ckpt-39750"
 DEPLOY="${TRAIN_DIR}/deploy"
 mkdir -p ${DEPLOY}
 
@@ -37,7 +36,7 @@ ${TFBAZEL}/tensorflow/tools/graph_transforms/transform_graph \
     --out_graph="${DEPLOY}/${deploy_graph_name}.pb" \
     --inputs=${deploy_input_nodes} \
     --outputs=${deploy_output_nodes} \
-    --transforms='strip_unused_nodes(type=uint8, shape="1,300,300,3")
+    --transforms='strip_unused_nodes(type=uint8, shape="1,512,512,3")
                   remove_nodes(op=Identity, op=CheckNumerics)
                   fold_constants(ignore_errors=true)
                   fold_batch_norms
@@ -52,7 +51,9 @@ python ${WORKSPACE}/../tf_coreml_utils/tf2coreml.py \
     --input_pb_file="${DEPLOY}/${deploy_graph_name}.pb" \
     --output_mlmodel="${DEPLOY}/${deploy_graph_name}.mlmodel" \
     --input_node_name=${ml_input_nodes} \
-    --output_node_name=${ml_output_nodes}
+    --output_node_name=${ml_output_nodes} \
+    --input_height=512 \
+    --input_width=512
 
 echo "Done with exporting CoreML model!!!"
 echo ""

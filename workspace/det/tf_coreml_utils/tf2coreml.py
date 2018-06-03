@@ -28,15 +28,16 @@ tf.app.flags.DEFINE_string(
 #    'As mentioned')
 
 tf.app.flags.DEFINE_integer(
-    'input_height', 300, 'As mentioned')
+    'input_height', 512, 'As mentioned')
 
 tf.app.flags.DEFINE_integer(
-    'input_width', 300, 'As mentioned')
+    'input_width', 512, 'As mentioned')
 
 FLAGS = tf.app.flags.FLAGS
 
 
 output_feature_names = [FLAGS.output_node_name]
+print('input_size: ', (FLAGS.input_height, FLAGS.input_width))
 if FLAGS.output_node_name == 'all':
   print('FLAGS.output_node_name = ', FLAGS.output_node_name)
   output_feature_names = ['box_encodings:0',
