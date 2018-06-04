@@ -11,24 +11,24 @@ log_dir="dec1/train"
 dataset_name="pascal_voc_saliency"
 tfrecord_dir="pascal_voc_saliency/tfrecord"
 
-ckpt="ckpt/dec1.2.voc/model.ckpt-150"
+ckpt="dec1/ckpt/voc/model.ckpt-12"
 checkpoint_exclude_scopes="MobilenetV2/Logits,MobilenetV2/Decoder"
 trainable_scopes="MobilenetV2/Logits,MobilenetV2/Conv_3,MobilenetV2/Decoder"
 
 num_clones_new=1
-batch_size_new=180    # 192 * 2  
-train_steps_new=14000  # 6000 steps, about 31 epoches
+batch_size_new=8    # 192 * 2  
+train_steps_new=12  # 6000 steps, about 31 epoches
 second_stage_dir="all"
-num_clones=2
-batch_size=136
-train_steps=30000     # 30000 steps, about 50 epoches
+num_clones=1
+batch_size=8
+train_steps=12     # 30000 steps, about 50 epoches
 lr_decay_factor=0.87
 
 ###########################################
-HOME="/home/corp.owlii.com/yi.xu"
-SLIM="${HOME}/tensorflow/models/research/slim"
+HOME="/home/popzq"
+SLIM="${HOME}/workspace/models/research/slim"
 WORKSPACE="${HOME}/workspace/models/workspace/seg"
-DATASET_DIR="${HOME}/data/${tfrecord_dir}"
+DATASET_DIR="${HOME}/disk/${tfrecord_dir}"
 INIT_CHECKPOINT="${WORKSPACE}/${ckpt}"
 TRAIN_DIR="${WORKSPACE}/${log_dir}"
 mkdir -p ${TRAIN_DIR}

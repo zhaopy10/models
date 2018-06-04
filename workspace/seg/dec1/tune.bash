@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 model_name="mobilenet_v2_035_sgmt"
 log_dir="dec1/voc"
 
@@ -11,7 +10,7 @@ log_dir="dec1/voc"
 dataset_name="pascal_voc_saliency"
 tfrecord_dir="pascal_voc_saliency/tfrecord"
 
-ckpt="ckpt/dec1.2.voc/model.ckpt-150"
+ckpt="dec1/ckpt/voc/model.ckpt-12"
 num_clones=1
 batch_size=16      # 192 * 2  
 train_steps=12    # 6000 steps, about 31 epoches
@@ -19,7 +18,7 @@ lr_decay_factor=0.8
 
 ###########################################
 HOME="/home/corp.owlii.com/yi.xu"
-SLIM="${HOME}/tensorflow/models/research/slim"
+SLIM="${HOME}/workspace/models/research/slim"
 WORKSPACE="${HOME}/workspace/models/workspace/seg"
 DATASET_DIR="${HOME}/data/${tfrecord_dir}"
 INIT_CHECKPOINT="${WORKSPACE}/${ckpt}"

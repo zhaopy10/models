@@ -12,10 +12,10 @@ dataset_name="pascal_voc_saliency"
 tfrecord_dir="pascal_voc_saliency/tfrecord"
 
 ###################################
-HOME="/home/corp.owlii.com/yi.xu"
-SLIM="${HOME}/tensorflow/models/research/slim"
-WORKSPACE="${HOME}/workspace/models/seg"
-DATASET_DIR="${HOME}/data/${tfrecord_dir}"
+HOME="/home/popzq"
+SLIM="${HOME}/workspace/models/research/slim"
+WORKSPACE="${HOME}/workspace/models/workspace/seg"
+DATASET_DIR="${HOME}/disk/${tfrecord_dir}"
 VAL_DIR="${WORKSPACE}/${log_dir}"
 
 # Run evaluation.
@@ -26,8 +26,8 @@ python eval_sgmt.py \
   --dataset_split_name=val \
   --dataset_dir=${DATASET_DIR} \
   --model_name=${model_name} \
-  --batch_size=1 \
-  --use_cpu=True \
+  --batch_size=16 \
+  --use_cpu=False \
   --eval_interval_secs=10 \
   --min_resize_value=512 \
   --max_resize_value=512 \

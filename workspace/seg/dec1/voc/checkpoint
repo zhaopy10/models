@@ -1,4 +1,0 @@
-model_checkpoint_path: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/dec1/voc/model.ckpt-12"
-all_model_checkpoint_paths: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/dec1/voc/model.ckpt-0"
-all_model_checkpoint_paths: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/dec1/voc/model.ckpt-6"
-all_model_checkpoint_paths: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/dec1/voc/model.ckpt-12"
