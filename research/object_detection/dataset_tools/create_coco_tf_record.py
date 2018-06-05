@@ -124,6 +124,8 @@ def create_tf_example(image,
   area = []
   encoded_mask_png = []
   num_annotations_skipped = 0
+  num_annotations = 0
+#  tf.logging.info('Got image with %d annos.', len(annotations_list))
   for object_annotations in annotations_list:
     (x, y, width, height) = tuple(object_annotations['bbox'])
     if width <= 0 or height <= 0:
@@ -137,8 +139,11 @@ def create_tf_example(image,
     if FLAGS.just_person:
       person_id = 1
       category_id = int(object_annotations['category_id'])
-      if person_id != category_id:
+      this_is_crowd = object_annotations['iscrowd']
+      if category_id != person_id or this_is_crowd:
         continue
+
+    num_annotations += 1
 
     xmin.append(float(x) / image_width)
     xmax.append(float(x + width) / image_width)
@@ -194,7 +199,7 @@ def create_tf_example(image,
     feature_dict['image/object/mask'] = (
         dataset_util.bytes_list_feature(encoded_mask_png))
   example = tf.train.Example(features=tf.train.Features(feature=feature_dict))
-  return key, example, num_annotations_skipped
+  return key, example, num_annotations_skipped, num_annotations
 
 
 def _create_tf_record_from_coco_annotations(
@@ -235,13 +240,21 @@ def _create_tf_record_from_coco_annotations(
     tf.logging.info('writing to output path: %s', output_path)
     writer = tf.python_io.TFRecordWriter(output_path)
     total_num_annotations_skipped = 0
+    total_num_annotations = 0
+    total_num_images = 0
     for idx, image in enumerate(images):
       if idx % 100 == 0:
         tf.logging.info('On image %d of %d', idx, len(images))
+        tf.logging.info('Have added %d images, %d annos.', 
+            total_num_images, total_num_annotations)
       annotations_list = annotations_index[image['id']]
-      _, tf_example, num_annotations_skipped = create_tf_example(
+      _, tf_example, num_annotations_skipped, num_annotations = create_tf_example(
           image, annotations_list, image_dir, category_index, include_masks)
       total_num_annotations_skipped += num_annotations_skipped
+      total_num_annotations += num_annotations
+      if num_annotations == 0:
+        continue
+      total_num_images += 1
       writer.write(tf_example.SerializeToString())
     writer.close()
     tf.logging.info('Finished writing, skipped %d annotations.',
