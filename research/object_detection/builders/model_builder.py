@@ -27,11 +27,15 @@ from object_detection.core import box_predictor
 from object_detection.meta_architectures import faster_rcnn_meta_arch
 from object_detection.meta_architectures import rfcn_meta_arch
 from object_detection.meta_architectures import ssd_meta_arch
+
 from object_detection.models import faster_rcnn_inception_resnet_v2_feature_extractor as frcnn_inc_res
 from object_detection.models import faster_rcnn_inception_v2_feature_extractor as frcnn_inc_v2
 from object_detection.models import faster_rcnn_nas_feature_extractor as frcnn_nas
 from object_detection.models import faster_rcnn_pnas_feature_extractor as frcnn_pnas
 from object_detection.models import faster_rcnn_resnet_v1_feature_extractor as frcnn_resnet_v1
+from object_detection.models import faster_rcnn_mobilenet_v1_feature_extractor as frcnn_mnetv1
+from object_detection.models import faster_rcnn_mobilenet_v2_feature_extractor as frcnn_mnetv2
+
 from object_detection.models import ssd_resnet_v1_fpn_feature_extractor as ssd_resnet_v1_fpn
 from object_detection.models.embedded_ssd_mobilenet_v1_feature_extractor import EmbeddedSSDMobileNetV1FeatureExtractor
 from object_detection.models.ssd_inception_v2_feature_extractor import SSDInceptionV2FeatureExtractor
@@ -68,6 +72,10 @@ FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP = {
     frcnn_resnet_v1.FasterRCNNResnet101FeatureExtractor,
     'faster_rcnn_resnet152':
     frcnn_resnet_v1.FasterRCNNResnet152FeatureExtractor,
+    'faster_rcnn_mobilenet_v1_feature_extractor':
+    frcnn_mnetv1.FasterRCNNMobilenetV1FeatureExtractor,
+    'faster_rcnn_mobilenet_v2_feature_extractor':
+    frcnn_mnetv2.FasterRCNNMobilenetV2FeatureExtractor,
 }
 
 
@@ -240,7 +248,9 @@ def _build_faster_rcnn_feature_extractor(
   first_stage_features_stride = (
       feature_extractor_config.first_stage_features_stride)
   batch_norm_trainable = feature_extractor_config.batch_norm_trainable
+  depth_multiplier = feature_extractor_config.depth_multiplier
 
+#  print('###builders/model_builder.py### - feature_type: ', feature_type)
   if feature_type not in FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP:
     raise ValueError('Unknown Faster R-CNN feature_extractor: {}'.format(
         feature_type))
@@ -248,7 +258,7 @@ def _build_faster_rcnn_feature_extractor(
       feature_type]
   return feature_extractor_class(
       is_training, first_stage_features_stride,
-      batch_norm_trainable, reuse_weights)
+      batch_norm_trainable, reuse_weights, depth_multiplier=depth_multiplier)
 
 
 def _build_faster_rcnn_model(frcnn_config, is_training, add_summaries):

@@ -38,7 +38,7 @@ ml_output_node=None  # use None when the logits is already 512x512
 #ml_output_node="MobilenetV2/heatmap:0"
 #input_size=[1,512,512,3]
 
-
+##########################################
 # Prepare the graph for freezing
 python train_sgmt.py \
   --train_dir=${DEPLOY_DIR} \
@@ -55,7 +55,6 @@ python train_sgmt.py \
   --use_decoder=True \
   --adjust_for_deploy=true
 
-
 # Freeze the graph
 python ${WORKSPACE}/my_graph_utils/freeze_graph.py \
     --input_graph=${pbtxt} \
@@ -63,7 +62,6 @@ python ${WORKSPACE}/my_graph_utils/freeze_graph.py \
     --input_checkpoint=${ckpt} \
     --output_graph=${frozen} \
     --output_node_names=${output_node::-2} \
-
 
 ${TFBAZEL}/tensorflow/tools/graph_transforms/transform_graph \
     --in_graph=${frozen} \
@@ -77,20 +75,16 @@ ${TFBAZEL}/tensorflow/tools/graph_transforms/transform_graph \
                   fold_old_batch_norms'
 #                  add_default_attributes'
 
-
 python ${WORKSPACE}/my_graph_utils/pb2pbtxt.py \
     --pb_path=${deploy} \
     --log_dir=${DEPLOY_DIR} \
     --pbtxt_name=${pbtxt_name}
 
-
-. /home/corp.owlii.com/yi.xu/anaconda2/etc/profile.d/conda.sh
 python ${WORKSPACE}/tf_coreml_utils/tf2coreml.py \
     --input_pb_file=${deploy} \
     --output_mlmodel=${deploy_mlmodel} \
     --input_node_name=${input_node} \
     --output_node_name=${ml_output_node}
-
 
 result_dir="${DEPLOY_DIR}/deployed_graph"
 mkdir -p "${result_dir}"

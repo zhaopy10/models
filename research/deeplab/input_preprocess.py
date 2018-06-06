@@ -83,6 +83,7 @@ def preprocess_image_and_label(image,
 
   # Resize image and label to the desired range.
   if min_resize_value is not None or max_resize_value is not None:
+#    print('###deeplab/input_preprocess.py### Will perform resizing.')
     [processed_image, label] = (
         preprocess_utils.resize_to_range(
             image=processed_image,
@@ -93,7 +94,10 @@ def preprocess_image_and_label(image,
             align_corners=True))
     # The `original_image` becomes the resized image.
     original_image = tf.identity(processed_image)
+#  else:
+#    print('###deeplab/input_preprocess.py### Do not perform resizing.')
 
+#  print('###deeplab/input_preprocess.py### crop_size: ', (crop_height, crop_width))
   # Data augmentation by randomly scaling the inputs.
   scale = preprocess_utils.get_random_scale(
       min_scale_factor, max_scale_factor, scale_factor_step_size)
@@ -121,8 +125,24 @@ def preprocess_image_and_label(image,
 
   # Randomly crop the image and label.
   if is_training and label is not None:
+    print('### deeplab/input_preprocess.py ### - training mode, \
+          so perform random cropping on input to [crop_height, crop_width]: ', 
+          [crop_height, crop_width])
     processed_image, label = preprocess_utils.random_crop(
         [processed_image, label], crop_height, crop_width)
+
+  # this is for validation, by Yi Xu
+  # at this point, due to padding above, image size is already >= crop size,
+  # so feel free to apply resize directly to crop size.
+  if not is_training:
+    print('### deeplab/input_preprocess.py ### - validation mode, \
+          so perform resizing on input to [crop_height, crop_width]: ', 
+          [crop_height, crop_width])
+    processed_image = tf.image.resize_images(
+        processed_image, [crop_height, crop_width], method=tf.image.ResizeMethod.BILINEAR)
+    if label is not None:
+      label = tf.image.resize_images(
+          label, [crop_height, crop_width], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
   processed_image.set_shape([crop_height, crop_width, 3])
 

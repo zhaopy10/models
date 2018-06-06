@@ -1,3 +1,0 @@
-Model: mobilenet_v2_0.35_224
-Input: input
-Output: MobilenetV2/Predictions/Reshape_1

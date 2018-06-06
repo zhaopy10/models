@@ -3,8 +3,8 @@
 
 ROOT="/home/corp.owlii.com/yi.xu/workspace/models"
 TFDET="${ROOT}/research/object_detection"
-WORKSPACE="${ROOT}/workspace/det/test"
-PIPELINE_CONFIG="${WORKSPACE}/ssd_mnetv2_coco.config"
+WORKSPACE="${ROOT}/workspace/det/sample"
+PIPELINE_CONFIG="${WORKSPACE}/faster_rcnn_inception_v2_coco.config"
 TRAIN_DIR="${WORKSPACE}/train"
 
 python ${TFDET}/eval.py \
