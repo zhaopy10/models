@@ -1,5 +1,7 @@
 # protos
-protos/
+research/object_detection/protos/*
+research/pycocotools
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
