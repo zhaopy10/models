@@ -248,7 +248,8 @@ def _build_faster_rcnn_feature_extractor(
   first_stage_features_stride = (
       feature_extractor_config.first_stage_features_stride)
   batch_norm_trainable = feature_extractor_config.batch_norm_trainable
-  depth_multiplier = feature_extractor_config.depth_multiplier
+  # Added by Yi Xu; uncomment it when useful
+#  depth_multiplier = feature_extractor_config.depth_multiplier
 
 #  print('###builders/model_builder.py### - feature_type: ', feature_type)
   if feature_type not in FASTER_RCNN_FEATURE_EXTRACTOR_CLASS_MAP:
@@ -258,7 +259,12 @@ def _build_faster_rcnn_feature_extractor(
       feature_type]
   return feature_extractor_class(
       is_training, first_stage_features_stride,
-      batch_norm_trainable, reuse_weights, depth_multiplier=depth_multiplier)
+      batch_norm_trainable, reuse_weights)
+
+  # Added by Yi Xu; uncomment it when useful
+#  return feature_extractor_class(
+#      is_training, first_stage_features_stride,
+#      batch_norm_trainable, reuse_weights, depth_multiplier=depth_multiplier)
 
 
 def _build_faster_rcnn_model(frcnn_config, is_training, add_summaries):
