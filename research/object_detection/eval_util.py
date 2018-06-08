@@ -430,7 +430,7 @@ def repeated_checkpoint_run(tensor_dict,
     number_of_evaluations += 1
 
     # by Yi Xu
-    if metrics is no None:
+    if metrics is not None:
       metric_to_print = 'PascalBoxes_Precision/mAP@0.5IOU'
       tf.logging.info(' ' + metric_to_print + ': %f', metrics[metric_to_print])
 
