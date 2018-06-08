@@ -425,7 +425,11 @@ def repeated_checkpoint_run(tensor_dict,
                                                   save_graph_dir,
                                                   losses_dict=losses_dict)
       write_metrics(metrics, global_step, summary_dir)
+
     number_of_evaluations += 1
+
+    # by Yi Xu
+    tf.logging.info(metrics['PascalBoxes_Precision/mAP@0.5IOU'])
 
     if (max_number_of_evaluations and
         number_of_evaluations >= max_number_of_evaluations):
