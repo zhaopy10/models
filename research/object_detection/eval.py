@@ -142,6 +142,7 @@ def main(unused_argv):
       FLAGS.eval_dir,
       graph_hook_fn=graph_rewriter_fn)
 
+  tf.logging.info(metrics)
   print('################', metrics)
 
 
