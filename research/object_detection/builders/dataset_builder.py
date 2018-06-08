@@ -21,6 +21,8 @@ Note: If users wishes to also use their own InputReaders with the Object
 Detection configuration framework, they should define their own builder function
 that wraps the build function.
 """
+import os
+
 import functools
 import tensorflow as tf
 
@@ -159,6 +161,18 @@ def build(input_reader_config, transform_input_data_fn=None,
       if transform_input_data_fn is not None:
         return transform_input_data_fn(processed)
       return processed
+
+    # by Yi Xu
+#    print(config.input_path[:])
+    input_paths = []
+    for prefix in config.input_path[:]:
+      pathdir = os.path.dirname(prefix)
+      pathbase = os.path.basename(prefix)
+      for afile in os.listdir(pathdir):
+          abspath = os.path.join(pathdir, afile)
+          if os.path.isfile(abspath) and pathbase in afile:
+              input_paths.append(abspath)
+    print('### builders/dataset_builder.py ### - Input tfrecords: ', input_paths)
 
     dataset = dataset_util.read_dataset(
         functools.partial(tf.data.TFRecordDataset, buffer_size=8 * 1000 * 1000),
