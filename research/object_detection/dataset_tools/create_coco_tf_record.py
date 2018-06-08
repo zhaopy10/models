@@ -262,29 +262,63 @@ def _create_tf_record_from_coco_annotations(
 
 
 def main(_):
-  assert FLAGS.train_image_dir, '`train_image_dir` missing.'
-  assert FLAGS.val_image_dir, '`val_image_dir` missing.'
-  assert FLAGS.test_image_dir, '`test_image_dir` missing.'
-  assert FLAGS.train_annotations_file, '`train_annotations_file` missing.'
-  assert FLAGS.val_annotations_file, '`val_annotations_file` missing.'
-  assert FLAGS.testdev_annotations_file, '`testdev_annotations_file` missing.'
-
   if not tf.gfile.IsDirectory(FLAGS.output_dir):
     tf.gfile.MakeDirs(FLAGS.output_dir)
-  train_output_path = os.path.join(FLAGS.output_dir, 'coco_train.record')
-  val_output_path = os.path.join(FLAGS.output_dir, 'coco_val.record')
-  testdev_output_path = os.path.join(FLAGS.output_dir, 'coco_testdev.record')
 
-  _create_tf_record_from_coco_annotations(
-      FLAGS.train_annotations_file,
-      FLAGS.train_image_dir,
-      train_output_path,
-      FLAGS.include_masks)
-  _create_tf_record_from_coco_annotations(
-      FLAGS.val_annotations_file,
-      FLAGS.val_image_dir,
-      val_output_path,
-      FLAGS.include_masks)
+  if FLAGS.train_image_dir and FLAGS.train_annotations_file:
+    train_output_path = os.path.join(FLAGS.output_dir, 'coco_train.record')
+    _create_tf_record_from_coco_annotations(
+        FLAGS.train_annotations_file,
+        FLAGS.train_image_dir,
+        train_output_path,
+        FLAGS.include_masks)
+  else:
+    print('train_image_dir or train_annotations_file missing, so not do it.')
+
+  if FLAGS.val_image_dir and FLAGS.val_annotations_file:
+    val_output_path = os.path.join(FLAGS.output_dir, 'coco_val.record')
+    _create_tf_record_from_coco_annotations(
+        FLAGS.val_annotations_file,
+        FLAGS.val_image_dir,
+        val_output_path,
+        FLAGS.include_masks)
+  else:
+    print('val_image_dir or val_annotations_file missing, so not do it.')
+
+  if FLAGS.test_image_dir and FLAGS.testdev_annotations_file:
+    testdev_output_path = os.path.join(FLAGS.output_dir, 'coco_testdev.record')
+    _create_tf_record_from_coco_annotations(
+        FLAGS.testdev_annotations_file,
+        FLAGS.test_image_dir,
+        testdev_output_path,
+        FLAGS.include_masks)
+  else:
+    print('test_image_dir or testdev_annotations_file missing, so not do it.')
+
+
+#  assert FLAGS.train_image_dir, '`train_image_dir` missing.'
+#  assert FLAGS.val_image_dir, '`val_image_dir` missing.'
+#  assert FLAGS.test_image_dir, '`test_image_dir` missing.'
+#  assert FLAGS.train_annotations_file, '`train_annotations_file` missing.'
+#  assert FLAGS.val_annotations_file, '`val_annotations_file` missing.'
+#  assert FLAGS.testdev_annotations_file, '`testdev_annotations_file` missing.'
+#
+#  if not tf.gfile.IsDirectory(FLAGS.output_dir):
+#    tf.gfile.MakeDirs(FLAGS.output_dir)
+#  train_output_path = os.path.join(FLAGS.output_dir, 'coco_train.record')
+#  val_output_path = os.path.join(FLAGS.output_dir, 'coco_val.record')
+#  testdev_output_path = os.path.join(FLAGS.output_dir, 'coco_testdev.record')
+#
+#  _create_tf_record_from_coco_annotations(
+#      FLAGS.train_annotations_file,
+#      FLAGS.train_image_dir,
+#      train_output_path,
+#      FLAGS.include_masks)
+#  _create_tf_record_from_coco_annotations(
+#      FLAGS.val_annotations_file,
+#      FLAGS.val_image_dir,
+#      val_output_path,
+#      FLAGS.include_masks)
 #  _create_tf_record_from_coco_annotations(
 #      FLAGS.testdev_annotations_file,
 #      FLAGS.test_image_dir,
