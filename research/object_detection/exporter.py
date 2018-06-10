@@ -219,14 +219,6 @@ def _add_output_for_deploy(preprocessed_inputs,
       class_scores, name='class_scores')
   print('### class_scores: ', class_scores)
 
-  # prepare output of class_indices; depreciated
-#  class_indices = tf.argmax(
-#      detection_scores_with_background, axis=3, output_type=tf.int32)
-#  class_indices = tf.expand_dims(class_indices, axis=3)
-#  outputs['class_indices'] = tf.identity(
-#      class_indices, name='class_indices')
-#  print('### class_indices: ', class_indices)
-
   # prepare the output of anchors
   if FLAGS.output_anchors:
     tiled_anchor_boxes = tf.tile(
@@ -394,7 +386,7 @@ def _get_outputs_from_inputs(input_tensors, detection_model,
   if not FLAGS.deploy:
     inputs = tf.to_float(input_tensors)
     preprocessed_inputs, true_image_shapes = detection_model.preprocess(inputs)
-  
+
     output_tensors = detection_model.predict(
         preprocessed_inputs, true_image_shapes)
   
@@ -408,8 +400,11 @@ def _get_outputs_from_inputs(input_tensors, detection_model,
     model_config = configs['model']
     input_height = model_config.ssd.image_resizer.fixed_shape_resizer.height
     input_width = model_config.ssd.image_resizer.fixed_shape_resizer.width
+#    input_height = model_config.ssd.image_resizer.keep_aspect_ratio_resizer.max_dimension
+#    input_width = model_config.ssd.image_resizer.keep_aspect_ratio_resizer.max_dimension
 
     preprocessed_inputs = tf.identity(input_tensors, name='image')
+    print('###exporter.py### - input_size: ', [input_height, input_width])
     preprocessed_inputs = tf.image.resize_images(
         preprocessed_inputs, [input_height, input_width])
     preprocessed_inputs = tf.to_float(preprocessed_inputs)

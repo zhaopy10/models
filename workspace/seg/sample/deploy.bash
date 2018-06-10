@@ -33,9 +33,9 @@ deploy="${DEPLOY_DIR}/deploy_graph.pb"
 pbtxt_name="deploy_graph.pbtxt"
 
 deploy_mlmodel="${DEPLOY_DIR}/deploy_graph.mlmodel"
-ml_output_node=None  # use None when the logits is already 512x512
+#ml_output_node=None  # use None when the logits is already 512x512
 #ml_output_node="MobilenetV2/ResizeBilinear:0"
-#ml_output_node="MobilenetV2/heatmap:0"
+ml_output_node="MobilenetV2/heatmap:0"
 #input_size=[1,512,512,3]
 
 ##########################################
