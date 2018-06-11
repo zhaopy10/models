@@ -256,6 +256,12 @@ tf.app.flags.DEFINE_float(
     'keep_ckpt_every_n_hours', 1.0, 'As mentioned')
 
 tf.app.flags.DEFINE_boolean(
+    'deploy_input_resizer', False, 'As mentioned')
+
+tf.app.flags.DEFINE_boolean(
+    'deploy_output_resizer', False, 'As mentioned')
+
+tf.app.flags.DEFINE_boolean(
     'adjust_for_deploy', False, 'As mentioned')
 
 FLAGS = tf.app.flags.FLAGS
@@ -554,8 +560,9 @@ def main(_):
 
       # define loss
       if FLAGS.adjust_for_deploy:
-        logits = tf.image.resize_bilinear(
-            logits, FLAGS.output_size, align_corners=True)
+        if FLAGS.deploy_output_resizer:
+          logits = tf.image.resize_bilinear(
+              logits, FLAGS.output_size, align_corners=True)
       else:
         logits = tf.image.resize_bilinear(
             logits, tf.shape(labels)[1:3], align_corners=True)

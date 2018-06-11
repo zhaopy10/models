@@ -398,7 +398,8 @@ def mobilenet(inputs,
 
     use_decoder = FLAGS.use_decoder
     if use_decoder:
-      num_skips = 5
+      num_skips = 5  # if this is less than 5, then 
+                     # FLAGS.deploy_output_resizer must be set to true.
       decoder_inputs = [end_points['layer_14'],
                         end_points['layer_7'],
                         end_points['layer_4'],
