@@ -1,6 +1,6 @@
 #!/bin/bash
 
-data_dir="/home/xuyithu/workspace/data"
+data_dir="/home/xuyithu/workspace/oid.head.nogroupimages"
 TFDET="/home/xuyithu/workspace/models/research/object_detection"
 
 for name in "train" "validation"
