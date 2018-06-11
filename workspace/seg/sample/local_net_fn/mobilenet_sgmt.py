@@ -398,8 +398,7 @@ def mobilenet(inputs,
 
     use_decoder = FLAGS.use_decoder
     if use_decoder:
-      num_skips = 5  # if this is less than 5, then 
-                     # FLAGS.deploy_output_resizer must be set to true.
+      num_skips = 5
       decoder_inputs = [end_points['layer_14'],
                         end_points['layer_7'],
                         end_points['layer_4'],
@@ -446,31 +445,8 @@ def mobilenet(inputs,
     if prediction_fn:
       end_points['Predictions'] = prediction_fn(logits, 'Predictions')
 
-    # produce heatmap here
-#    heatmap = tf.nn.softmax(logits)
-#    heatmap = tf.image.resize_bilinear(
-#        heatmap, FLAGS.output_size, align_corners=True)
-#### the swapped version below makes border contour more smooth, but slower
-#    upsampled = tf.image.resize_bilinear(
-#        logits, FLAGS.output_size, align_corners=True)
-#    heatmap = tf.nn.softmax(upsampled)
-
-#  for network with dec1, upsampling is not needed here
-    heatmap = tf.nn.softmax(logits)
-#    heatmap.set_shape([1, 512, 512, 2])
-
-    # deployable to coreml (slow)
-#    heatmap = tf.exp(upsampled)
-#    heatmap = heatmap / tf.reduce_sum(heatmap, 3, keepdims=True)
-
-    # reduce the output channel number to one, but slice is not deployable to coreml
-#    clone_batch_size = int(FLAGS.batch_size / FLAGS.num_clones)
-#    heatmap = tf.slice(heatmap, [0, 0, 0, 1], [clone_batch_size, 
-#                       FLAGS.output_size[0], FLAGS.output_size[1], 1])
-
-    heatmap = tf.identity(heatmap, name='heatmap')
-#    logits = tf.identity(logits, name='logits')
-#    upsampled = tf.identity(upsampled, name='upsampled')
+    #heatmap = tf.nn.softmax(logits)
+    #heatmap = tf.identity(heatmap, name='heatmap')
 
   return logits, end_points
 

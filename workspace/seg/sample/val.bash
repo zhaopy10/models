@@ -1,9 +1,11 @@
 #!/bin/bash
 
 
-log_dir="dec1/voc"
+project="035.dec1.3x4"
+log_dir="train"
 model_name="mobilenet_v2_035_sgmt"
 
+###### data ######
 #dataset_name="coco2017_saliency_ext"
 #tfrecord_dir="coco2017/saliency_ext/tfrecord"
 #dataset_name="owlii_studio"
@@ -11,23 +13,25 @@ model_name="mobilenet_v2_035_sgmt"
 dataset_name="pascal_voc_saliency"
 tfrecord_dir="pascal_voc_saliency/tfrecord"
 
-###################################
-HOME="/home/corp.owlii.com/yi.xu"
-SLIM="${HOME}/tensorflow/models/research/slim"
-WORKSPACE="${HOME}/workspace/models/seg"
+###### directories ######
+#HOME="/home/corp.owlii.com/yi.xu"
+ROOT="${HOME}/workspace/models/workspace/seg"
+WORKSPACE="${ROOT}/${project}"
+TRAIN_UTILS="${ROOT}/my_training_utils"
 DATASET_DIR="${HOME}/data/${tfrecord_dir}"
 VAL_DIR="${WORKSPACE}/${log_dir}"
+PYTHONPATH="${PYTHONPATH}:${WORKSPACE}:${WORKSPACE}/.."
 
 # Run evaluation.
-python eval_sgmt.py \
+python ${TRAIN_UTILS}/eval_sgmt.py \
   --checkpoint_path=${VAL_DIR} \
   --eval_dir=${VAL_DIR} \
   --dataset_name=${dataset_name} \
   --dataset_split_name=val \
   --dataset_dir=${DATASET_DIR} \
   --model_name=${model_name} \
-  --batch_size=1 \
-  --use_cpu=True \
+  --batch_size=16 \
+  --use_cpu=False \
   --eval_interval_secs=10 \
   --min_resize_value=512 \
   --max_resize_value=512 \

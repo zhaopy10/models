@@ -1,9 +1,10 @@
 #!/bin/bash
 
 
-model_name="mobilenet_v2_035_sgmt"
-log_dir="dec1/train"
+project="035.dec1.3x4"
+log_dir="train"
 
+###### data ###### 
 #dataset_name="coco2017_saliency_ext"
 #tfrecord_dir="coco2017/saliency_ext/tfrecord"
 #dataset_name="owlii_studio"
@@ -11,31 +12,37 @@ log_dir="dec1/train"
 dataset_name="pascal_voc_saliency"
 tfrecord_dir="pascal_voc_saliency/tfrecord"
 
-ckpt="ckpt/dec1.2.voc/model.ckpt-150"
+###### model ######
+ckpt="ckpt/voc/model.ckpt-12"
+model_name="mobilenet_v2_035_sgmt"
 checkpoint_exclude_scopes="MobilenetV2/Logits,MobilenetV2/Decoder"
 trainable_scopes="MobilenetV2/Logits,MobilenetV2/Conv_3,MobilenetV2/Decoder"
 
+###### training ######
 num_clones_new=1
-batch_size_new=180    # 192 * 2  
-train_steps_new=14000  # 6000 steps, about 31 epoches
+batch_size_new=1    # 192 * 2  
+train_steps_new=12  # 6000 steps, about 31 epoches
 second_stage_dir="all"
-num_clones=2
-batch_size=136
-train_steps=30000     # 30000 steps, about 50 epoches
+num_clones=1
+batch_size=1
+train_steps=12     # 30000 steps, about 50 epoches
 lr_decay_factor=0.87
 
-###########################################
-HOME="/home/corp.owlii.com/yi.xu"
-SLIM="${HOME}/tensorflow/models/research/slim"
-WORKSPACE="${HOME}/workspace/models/workspace/seg"
+###### directories ######
+#HOME="/home/corp.owlii.com/yi.xu"
+ROOT="${HOME}/workspace/models/workspace/seg"
+WORKSPACE="${ROOT}/${project}"
+TRAIN_UTILS="${ROOT}/my_training_utils"
 DATASET_DIR="${HOME}/data/${tfrecord_dir}"
 INIT_CHECKPOINT="${WORKSPACE}/${ckpt}"
+PYTHONPATH="${PYTHONPATH}:${WORKSPACE}:${WORKSPACE}/.."
 TRAIN_DIR="${WORKSPACE}/${log_dir}"
 mkdir -p ${TRAIN_DIR}
 
-##### Start training #####
+
+###### Start training ######
 # Fine-tune only the new layers
-python train_sgmt.py \
+python ${TRAIN_UTILS}/train_sgmt.py \
   --train_dir=${TRAIN_DIR} \
   --dataset_name=${dataset_name} \
   --dataset_split_name=train \
@@ -62,7 +69,7 @@ python train_sgmt.py \
   --use_decoder=True
 
 # Run evaluation.
-python eval_sgmt.py \
+python ${TRAIN_UTILS}/eval_sgmt.py \
   --checkpoint_path=${TRAIN_DIR} \
   --eval_dir=${TRAIN_DIR} \
   --dataset_name=${dataset_name} \
@@ -77,7 +84,7 @@ python eval_sgmt.py \
 
 
 # Fine-tune all the layers
-python train_sgmt.py \
+python ${TRAIN_UTILS}/train_sgmt.py \
   --train_dir=${TRAIN_DIR}/${second_stage_dir} \
   --dataset_name=${dataset_name} \
   --dataset_split_name=train \
@@ -103,7 +110,7 @@ python train_sgmt.py \
   --use_decoder=True
 
 # Run evaluation.
-python eval_sgmt.py \
+python ${TRAIN_UTILS}/eval_sgmt.py \
   --checkpoint_path=${TRAIN_DIR}/${second_stage_dir} \
   --eval_dir=${TRAIN_DIR}/${second_stage_dir} \
   --dataset_name=${dataset_name} \
