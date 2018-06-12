@@ -314,8 +314,9 @@ def decoder(net_outputs, decoder_inputs, end_points,
     for i in range(num_skips):
       bridge = decoder_inputs[i]
       if bridge_ch_nums[i] > 0:
-        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]) + 'x' + \
-                         str(skip_res[i][1])  + '_bridge'
+#        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]) + 'x' + \
+#                         str(skip_res[i][1])  + '_bridge'
+        scope_name = 'skip_' + str(i+1) + '_bridge'
         bridge = bridge_conv(bridge,
                    bridge_ch_nums[i],
                    scope=scope_name)
@@ -324,8 +325,9 @@ def decoder(net_outputs, decoder_inputs, end_points,
                    output, skip_res[i])
       output = tf.concat([bridge, output], 3)
       if output_ch_nums[i] > 0:
-        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]) + 'x' + \
-                         str(skip_res[i][1])  + '_output'
+#        scope_name = 'skip_' + str(i+1) + '_' + str(skip_res[i][0]) + 'x' + \
+#                         str(skip_res[i][1])  + '_output'
+        scope_name = 'skip_' + str(i+1)  + '_output'
         output = output_conv(output, output_ch_nums[i], scope=scope_name)
         end_points[scope_name] = output
 

@@ -1,4 +1,0 @@
-model_checkpoint_path: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/person.instance/train/model.ckpt-63401"
-all_model_checkpoint_paths: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/person.instance/train/model.ckpt-61847"
-all_model_checkpoint_paths: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/person.instance/train/model.ckpt-62675"
-all_model_checkpoint_paths: "/home/corp.owlii.com/yi.xu/workspace/models/workspace/seg/person.instance/train/model.ckpt-63401"

@@ -13,7 +13,7 @@ PYTHONPATH="${PYTHONPATH}:${WORKSPACE}:${WORKSPACE}/.."
 DEPLOY_DIR="${WORKSPACE}/${log_dir}/deploy"
 mkdir -p ${DEPLOY_DIR}
 
-ckpt="${WORKSPACE}/${log_dir}/model.ckpt-12"
+ckpt="${WORKSPACE}/ckpt/voc/model.ckpt-12"
 model_name="mobilenet_v2_035_sgmt"
 frozen_name="frozen_graph"
 deploy_name="deploy_graph"
@@ -56,5 +56,14 @@ python ${ROOT}/tf_coreml_utils/tf2coreml.py \
     --output_mlmodel="${DEPLOY_DIR}/${deploy_name}.mlmodel" \
     --input_node_name=${input_node} \
     --output_node_name=${output_node}
+
+# turn the mlmodel output type of MLMultiArray to Image (PixelBuffer in iOS)
+mv "${DEPLOY_DIR}/${deploy_name}.mlmodel" "${DEPLOY_DIR}/mlma_${deploy_name}.mlmodel"
+ml_output_node="heatmap__0"
+python ${ROOT}/tf_coreml_utils/multiarray2image.py \
+    --input_mlmodel="${DEPLOY_DIR}/mlma_${deploy_name}.mlmodel" \
+    --output_mlmodel="${DEPLOY_DIR}/${deploy_name}.mlmodel" \
+    --output_node=${ml_output_node} \
+    --is_bgr=False
 
 

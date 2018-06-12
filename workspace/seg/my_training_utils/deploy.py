@@ -233,6 +233,7 @@ def export_inference_graph(trained_checkpoint_prefix,
 
 def main(_):
   input_shape = [int(n) for n in FLAGS.input_shape.split(',')]
+  print('### deploy.py ### - deploy input shape: ', input_shape)
   export_inference_graph(FLAGS.trained_checkpoint_prefix,
                          FLAGS.output_directory, 
                          input_shape, 
