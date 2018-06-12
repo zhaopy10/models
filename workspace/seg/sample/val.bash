@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-project="035.dec1.3x4"
+project="sample"
 log_dir="train"
 model_name="mobilenet_v2_035_sgmt"
 

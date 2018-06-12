@@ -129,6 +129,14 @@ def _get_outputs_from_inputs(input_tensors,
   logits, end_points = network_fn(input_tensors)
   heatmap = tf.nn.softmax(logits)
 
+  # try slicing heatmap by multiplying, and convert to uint8 in [0, 255]
+#  heatmap = tf.slice(heatmap, [0,0,0,0], [1,512,512,1])
+  slicing_multiplier = tf.constant([0.0, 255.0], dtype=tf.float32)
+  heatmap = tf.reduce_max(heatmap * slicing_multiplier, 
+                          axis=3, keepdims=True)
+  heatmap = tf.cast(heatmap, tf.uint8)
+
+  # resize, if necessary
   output_size = [int(n) for n in FLAGS.output_size.split(',')]
   if not FLAGS.deploy_output_resizer:
     output_tensors = tf.identity(heatmap, name='heatmap')
