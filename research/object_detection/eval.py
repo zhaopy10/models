@@ -46,6 +46,7 @@ Example usage:
 import functools
 import os
 import tensorflow as tf
+import logging
 
 from object_detection import evaluator
 from object_detection.builders import dataset_builder
@@ -133,6 +134,8 @@ def main(unused_argv):
     graph_rewriter_fn = graph_rewriter_builder.build(
         configs['graph_rewriter_config'], is_training=False)
 
+  logging.getLogger().setLevel(logging.INFO)
+  logging.info('pyz comments: start evaluation')
   metrics = evaluator.evaluate(
       create_input_dict_fn,
       model_fn,

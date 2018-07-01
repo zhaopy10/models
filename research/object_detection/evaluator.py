@@ -47,7 +47,7 @@ EVAL_METRICS_CLASS_DICT = {
         coco_evaluation.CocoMaskEvaluator,
 }
 
-EVAL_DEFAULT_METRIC = 'pascal_voc_detection_metrics'
+EVAL_DEFAULT_METRIC = 'coco_detection_metrics'
 
 
 def _extract_predictions_and_losses(model,
@@ -143,6 +143,7 @@ def get_evaluators(eval_config, categories):
   if not eval_metric_fn_keys:
     eval_metric_fn_keys = [EVAL_DEFAULT_METRIC]
   evaluators_list = []
+  print 'pyz comments: ', eval_metric_fn_keys
   for eval_metric_fn_key in eval_metric_fn_keys:
     if eval_metric_fn_key not in EVAL_METRICS_CLASS_DICT:
       raise ValueError('Metric not found: {}'.format(eval_metric_fn_key))
@@ -256,6 +257,7 @@ def evaluate(create_input_dict_fn, create_model_fn, eval_config, categories,
 
   if not evaluator_list:
     evaluator_list = get_evaluators(eval_config, categories)
+  #print 'pyz comments: ', evaluator_list
 
   metrics = eval_util.repeated_checkpoint_run(
       tensor_dict=tensor_dict,

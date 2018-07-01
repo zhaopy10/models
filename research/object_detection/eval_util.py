@@ -394,6 +394,8 @@ def repeated_checkpoint_run(tensor_dict,
     ValueError: if max_num_of_evaluations is not None or a positive number.
     ValueError: if checkpoint_dirs doesn't have at least one element.
   """
+  logging.getLogger().setLevel(logging.INFO)
+  print 'max_number_of_evaluations:', max_number_of_evaluations
   if max_number_of_evaluations and max_number_of_evaluations <= 0:
     raise ValueError(
         '`number_of_steps` must be either None or a positive number.')
@@ -426,6 +428,7 @@ def repeated_checkpoint_run(tensor_dict,
                                                   losses_dict=losses_dict)
       write_metrics(metrics, global_step, summary_dir)
     number_of_evaluations += 1
+    print number_of_evaluations, ' evaluated'
 
     if (max_number_of_evaluations and
         number_of_evaluations >= max_number_of_evaluations):

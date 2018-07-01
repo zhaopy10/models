@@ -43,14 +43,17 @@ def filter_variables(variables, filter_regex_list, invert=False):
   """
   kept_vars = []
   variables_to_ignore_patterns = list(filter(None, filter_regex_list))
+  print 'variables_to_ignore_patterns', variables_to_ignore_patterns
   for var in variables:
     add = True
     for pattern in variables_to_ignore_patterns:
+      #print 'var', var.op.name, 'pattern', pattern, 're.match(pattern, var.op.name)', re.match(pattern, var.op.name)
       if re.match(pattern, var.op.name):
         add = False
         break
     if add != invert:
       kept_vars.append(var)
+  #print 'kept_vars', kept_vars
   return kept_vars
 
 
@@ -92,7 +95,9 @@ def freeze_gradients_matching_regex(grads_and_vars, regex_list):
   kept_grads_and_vars = [pair for pair in grads_and_vars
                          if pair[1] not in matching_vars]
   for var in matching_vars:
+    print 'Freezing variable', var.op.name
     logging.info('Freezing variable [%s]', var.op.name)
+  #raw_input()
   return kept_grads_and_vars
 
 

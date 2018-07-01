@@ -92,6 +92,7 @@ class BoxPredictor(object):
       ValueError: If length of `image_features` is not equal to length of
         `num_predictions_per_location`.
     """
+    print 'Enter BoxPredictor'
     if len(image_features) != len(num_predictions_per_location):
       raise ValueError('image_feature and num_predictions_per_location must '
                        'be of same length, found: {} vs {}'.
@@ -671,6 +672,7 @@ class ConvolutionalBoxPredictor(BoxPredictor):
         predictions for the proposals. Each entry in the list corresponds to a
         feature map in the input `image_features` list.
     """
+    print 'Enter ConvolutionalBoxPredictor'
     box_encodings_list = []
     class_predictions_list = []
     # TODO(rathodv): Come up with a better way to generate scope names
@@ -690,6 +692,7 @@ class ConvolutionalBoxPredictor(BoxPredictor):
              box_predictor_scopes):
       with box_predictor_scope:
         # Add a slot for the background class.
+        print 'image_feature / num_predictions_per_location / box_predictor_scope', image_feature, num_predictions_per_location, box_predictor_scope
         num_class_slots = self.num_classes + 1
         net = image_feature
         with slim.arg_scope(self._conv_hyperparams_fn()), \
@@ -715,6 +718,8 @@ class ConvolutionalBoxPredictor(BoxPredictor):
                   num_predictions_per_location * self._box_code_size, [1, 1],
                   scope='BoxEncodingPredictor')
             else:
+              print 'self._box_code_size', self._box_code_size
+              print 
               box_encodings = slim.conv2d(
                   net, num_predictions_per_location * self._box_code_size,
                   [self._kernel_size, self._kernel_size],
@@ -744,14 +749,15 @@ class ConvolutionalBoxPredictor(BoxPredictor):
         combined_feature_map_shape = (shape_utils.
                                       combined_static_and_dynamic_shape(
                                           image_feature))
-#        print('box_encodings', box_encodings)  # (24, 10, 10, 24)
+        #print('box_encodings', box_encodings)  # (24, 10, 10, 24)
         box_encodings = tf.reshape(
             box_encodings, tf.stack([combined_feature_map_shape[0],
                                      combined_feature_map_shape[1] *
                                      combined_feature_map_shape[2] *
                                      num_predictions_per_location,
                                      1, self._box_code_size]))
-#        print('box_encodings', box_encodings)  # (24, 600, 1, 4)
+        #print('box_encodings', box_encodings)  # (24, 600, 1, 4)
+        #raw_input()
         box_encodings_list.append(box_encodings)
         class_predictions_with_background = tf.reshape(
             class_predictions_with_background,

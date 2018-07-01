@@ -113,6 +113,12 @@ class GridAnchorGenerator(anchor_generator.AnchorGenerator):
                                                    self._aspect_ratios)
     scales_grid = tf.reshape(scales_grid, [-1])
     aspect_ratios_grid = tf.reshape(aspect_ratios_grid, [-1])
+    print 'scales_grid',scales_grid
+    print 'aspect_ratios_grid',aspect_ratios_grid
+    print 'self._base_anchor_size',self._base_anchor_size
+    print 'self._anchor_stride',self._anchor_stride
+    print 'self._anchor_offset',self._anchor_offset
+    
     anchors = tile_anchors(grid_height,
                            grid_width,
                            scales_grid,
@@ -120,12 +126,13 @@ class GridAnchorGenerator(anchor_generator.AnchorGenerator):
                            self._base_anchor_size,
                            self._anchor_stride,
                            self._anchor_offset)
-
+    #print 'anchors',anchors
     num_anchors = anchors.num_boxes_static()
     if num_anchors is None:
       num_anchors = anchors.num_boxes()
     anchor_indices = tf.zeros([num_anchors])
     anchors.add_field('feature_map_index', anchor_indices)
+    #raw_input()
     return [anchors]
 
 
@@ -189,6 +196,7 @@ def tile_anchors(grid_height,
   bbox_centers = tf.reshape(bbox_centers, [-1, 2])
   bbox_sizes = tf.reshape(bbox_sizes, [-1, 2])
   bbox_corners = _center_size_bbox_to_corners_bbox(bbox_centers, bbox_sizes)
+  #print 'bbox_corners', bbox_corners
   return box_list.BoxList(bbox_corners)
 
 

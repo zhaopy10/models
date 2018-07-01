@@ -44,6 +44,7 @@ class FasterRcnnInceptionV2FeatureExtractorTest(tf.test.TestCase):
     with self.test_session() as sess:
       sess.run(init_op)
       features_shape_out = sess.run(features_shape)
+      print "features_shape_out, stride 16", features_shape_out
       self.assertAllEqual(features_shape_out, [4, 14, 14, 576])
 
   def test_extract_proposal_features_stride_eight(self):
@@ -59,6 +60,7 @@ class FasterRcnnInceptionV2FeatureExtractorTest(tf.test.TestCase):
     with self.test_session() as sess:
       sess.run(init_op)
       features_shape_out = sess.run(features_shape)
+      print "features_shape_out, stride 8", features_shape_out
       self.assertAllEqual(features_shape_out, [4, 14, 14, 576])
 
   def test_extract_proposal_features_half_size_input(self):

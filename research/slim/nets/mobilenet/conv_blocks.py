@@ -168,6 +168,7 @@ def expanded_conv(input_tensor,
                   kernel_size=(3, 3),
                   residual=True,
                   normalizer_fn=None,
+                  normalizer_params=None,
                   split_projection=1,
                   split_expansion=1,
                   expansion_transform=None,
@@ -224,6 +225,7 @@ def expanded_conv(input_tensor,
   Raises:
     TypeError: on inval
   """
+  print 'Call expanded_conv with residual=',residual
   with tf.variable_scope(scope, default_name='expanded_conv') as s, \
        tf.name_scope(s.original_name_scope):
     prev_depth = input_tensor.get_shape().as_list()[3]
@@ -243,6 +245,7 @@ def expanded_conv(input_tensor,
         stride=stride,
         rate=rate,
         normalizer_fn=normalizer_fn,
+        normalizer_params=normalizer_params,
         padding=padding,
         scope='depthwise')
     # b1 -> b2 * r -> b2
@@ -267,7 +270,8 @@ def expanded_conv(input_tensor,
           num_ways=split_expansion,
           scope='expand',
           stride=1,
-          normalizer_fn=normalizer_fn)
+          normalizer_fn=normalizer_fn,
+          normalizer_params=normalizer_params)
       net = tf.identity(net, 'expansion_output')
     if endpoints is not None:
       endpoints['expansion_output'] = net
@@ -291,6 +295,7 @@ def expanded_conv(input_tensor,
         stride=1,
         scope='project',
         normalizer_fn=normalizer_fn,
+        normalizer_params=normalizer_params,
         activation_fn=tf.identity)
     if endpoints is not None:
       endpoints['projection_output'] = net

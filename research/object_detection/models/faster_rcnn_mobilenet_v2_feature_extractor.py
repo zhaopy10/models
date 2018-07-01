@@ -21,9 +21,11 @@ import tensorflow as tf
 from object_detection.meta_architectures import faster_rcnn_meta_arch
 from object_detection.utils import shape_utils
 #from nets import mobilenet_v1
-from nets.mobilenet import mobilenet_v2
+from nets.mobilenet import mobilenet_v2 as mobilenet_v2
 from nets.mobilenet import mobilenet as lib
 op = lib.op
+
+from nets.mobilenet import conv_blocks as ops
 
 slim = tf.contrib.slim
 
@@ -149,12 +151,15 @@ class FasterRCNNMobilenetV2FeatureExtractor(
       with tf.variable_scope('MobilenetV2',
                              reuse=self._reuse_weights) as scope:
         params = {}
+        '''
         if self._skip_last_stride:
           # Not called by default, will use conv_defs in slim.nets.mobilenet.mobilenet_v2
           params['conv_defs'] = _get_mobilenet_conv_no_last_stride_defs(
               conv_depth_ratio_in_percentage=self.
               _conv_depth_ratio_in_percentage)
-
+        '''
+        ''' 
+        # add by yi.xu
         _, endpoints = mobilenet_v2.mobilenet_base(
             preprocessed_inputs,
             final_endpoint='layer_19',  # actually 'MobilenetV2/Conv_1'
@@ -162,6 +167,18 @@ class FasterRCNNMobilenetV2FeatureExtractor(
             depth_multiplier=self._depth_multiplier,
             scope=scope,
             **params)
+        '''
+        # pyz add: test v2
+        _, endpoints = mobilenet_v2.mobilenet(
+            preprocessed_inputs,
+            final_endpoint='layer_19',  # layer_14 is the last layer, use layer_18 instead
+            base_only=True,
+            min_depth=self._min_depth,
+            depth_multiplier=self._depth_multiplier,
+            scope=scope,
+            **params)
+        # pyz comments: it seems that depth of layer_18 should be 320
+        print 'layer_19 shape: ', endpoints['layer_19'].get_shape()
     return endpoints['layer_19'], endpoints
 
   def _extract_box_classifier_features(self, proposal_feature_maps, scope):
@@ -180,28 +197,100 @@ class FasterRCNNMobilenetV2FeatureExtractor(
     """
     net = proposal_feature_maps
 
-    conv_depth = 1024
+    conv_depth = 1280
+    ''' 
+    # ignore
     if self._skip_last_stride:
       conv_depth_ratio = float(self._conv_depth_ratio_in_percentage) / 100.0
       conv_depth = int(float(conv_depth) * conv_depth_ratio)
-
+    '''
+    
     depth = lambda d: max(int(d * 1.0), 16)
     with tf.variable_scope('MobilenetV2', reuse=self._reuse_weights):
       with slim.arg_scope(
           mobilenet_v2.training_scope(
               is_training=self._train_batch_norm,
               weight_decay=self._weight_decay)):
+        
+        # it is the last two layers of mobilenet v1, should be changed
+        '''
         with slim.arg_scope(
             [slim.conv2d, slim.separable_conv2d], padding='SAME'):
+          
           net = slim.separable_conv2d(
               net,
-              depth(conv_depth), [3, 3],
+              depth(1280), [3, 3],
               depth_multiplier=1,
               stride=2,
               scope='Conv_2')  # or 'layer_20'
           return slim.separable_conv2d(
               net,
-              depth(conv_depth), [3, 3],
+              depth(1280), [3, 3],
               depth_multiplier=1,
               stride=1,
               scope='Conv_3')  # or 'layer_21'
+          
+        '''
+        
+        with slim.arg_scope(
+            [slim.conv2d, slim.separable_conv2d], padding='SAME'), \
+            slim.arg_scope([slim.batch_norm], is_training=True):
+            # not sure, but i think bn should be trainable
+          net = slim.separable_conv2d(
+              net, None, [3, 3],
+              depth_multiplier=1,
+              stride=2, rate=1, normalizer_fn=slim.batch_norm,
+              scope='add_conv2d_1_depthwise')
+          net = slim.conv2d(net, depth(conv_depth), [1, 1],
+              stride=1,
+              normalizer_fn=slim.batch_norm,
+              scope='add_conv2d_1_pointwise')
+          net = slim.separable_conv2d(
+              net, None, [3, 3],
+              depth_multiplier=1,
+              stride=1, rate=1, normalizer_fn=slim.batch_norm,
+              scope='add_conv2d_2_depthwise')
+          net = slim.conv2d(net, depth(conv_depth), [1, 1],
+              stride=1,
+              normalizer_fn=slim.batch_norm,
+              scope='add_conv2d_2_pointwise')
+          return net            
+'''
+          net = ops.expanded_conv(
+              net,
+              stride=2, num_outputs=depth(160),
+              normalizer_fn=slim.batch_norm,
+              normalizer_params={'scale': True},
+              scope='expanded_conv_13'
+              )
+          net = ops.expanded_conv(
+              net,
+              stride=1, num_outputs=depth(160),
+              normalizer_fn=slim.batch_norm,
+              normalizer_params={'scale': True},
+              scope='expanded_conv_14'
+              )
+          net = ops.expanded_conv(
+              net,
+              stride=1, num_outputs=depth(160),
+              normalizer_fn=slim.batch_norm,
+              normalizer_params={'scale': True},
+              scope='expanded_conv_15'
+              )
+          net = ops.expanded_conv(
+              net,
+              stride=1, num_outputs=depth(320),
+              normalizer_fn=slim.batch_norm,
+              normalizer_params={'scale': True},
+              scope='expanded_conv_16'
+              )
+          return slim.conv2d(
+              net,
+              num_outputs = depth(1280), kernel_size = [1, 1],
+              stride=1, normalizer_fn=slim.batch_norm,
+              normalizer_params={'scale': True},
+              scope='Conv_1') 
+'''
+         
+        
+  

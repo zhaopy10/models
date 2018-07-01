@@ -282,6 +282,7 @@ def mobilenet_v1_base(inputs,
                                       rate=layer_rate,
                                       normalizer_fn=slim.batch_norm,
                                       scope=end_point)
+          #print end_point, 'config: kernal', conv_def.kernel, 'stride', layer_stride, 'rate', layer_rate
 
           end_points[end_point] = net
           if end_point == final_endpoint:

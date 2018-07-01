@@ -177,11 +177,22 @@ def _create_losses(input_queue, create_model_fn, train_config):
        detection_model.num_classes,
        train_config.merge_multiple_label_boxes,
        train_config.use_multiclass_scores)
+  # debug _create_losses
+  print 'Enter _create_losses'
+  print 'images', images
+  print 'groundtruth_boxes_list', groundtruth_boxes_list
+  print 'groundtruth_classes_list', groundtruth_classes_list
+  print 'groundtruth_masks_list', groundtruth_masks_list
+  print 'groundtruth_keypoints_list', groundtruth_keypoints_list
+  #raw_input()
 
   preprocessed_images = []
   true_image_shapes = []
   for image in images:
     resized_image, true_image_shape = detection_model.preprocess(image)
+    print 'resized_image', resized_image
+    print 'true_image_shape', true_image_shape
+    #raw_input()
     preprocessed_images.append(resized_image)
     true_image_shapes.append(true_image_shape)
 
@@ -238,7 +249,7 @@ def train(create_tensor_dict_fn,
       to the training graph such as adding FakeQuant ops. The function should
       modify the default graph.
   """
-
+  print 'pyz comments: enter train'
   detection_model = create_model_fn()
   data_augmentation_options = [
       preprocessor_builder.build(step)
@@ -319,6 +330,7 @@ def train(create_tensor_dict_fn,
       if train_config.freeze_variables:
         grads_and_vars = variables_helper.freeze_gradients_matching_regex(
             grads_and_vars, train_config.freeze_variables)
+        
 
       # Optionally clip gradients
       if train_config.gradient_clipping_by_norm > 0:
@@ -356,7 +368,8 @@ def train(create_tensor_dict_fn,
     # Soft placement allows placing on CPU ops without GPU implementation.
     session_config = tf.ConfigProto(allow_soft_placement=True,
                                     log_device_placement=False)
-
+    session_config.gpu_options.per_process_gpu_memory_fraction = 0.95
+    
     # Save checkpoints regularly.
     keep_checkpoint_every_n_hours = train_config.keep_checkpoint_every_n_hours
     saver = tf.train.Saver(
@@ -377,9 +390,22 @@ def train(create_tensor_dict_fn,
           fine_tune_checkpoint_type=train_config.fine_tune_checkpoint_type,
           load_all_detection_checkpoint_vars=(
               train_config.load_all_detection_checkpoint_vars))
+      #print var_map
+      var_name_list = list(var_map.keys())
+      var_name_list.sort()
+      for i,x in enumerate(var_name_list):
+          if x.find('Momentum')!=-1:
+            continue
+          print 'Target Variable: ', i, 'Content: ', x, 'Shape', var_map[x].shape
+      #raw_input()
       available_var_map = (variables_helper.
                            get_variables_available_in_checkpoint(
                                var_map, train_config.fine_tune_checkpoint))
+      var_name_list = list(available_var_map.keys())
+      var_name_list.sort()
+      for i,x in enumerate(var_name_list):
+          print 'Available Variable: ', i, 'Content: ', x, 'Shape', available_var_map[x].shape
+      raw_input()
       init_saver = tf.train.Saver(available_var_map)
       def initializer_fn(sess):
         init_saver.restore(sess, train_config.fine_tune_checkpoint)

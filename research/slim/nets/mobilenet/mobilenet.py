@@ -212,6 +212,9 @@ def mobilenet_base(  # pylint: disable=invalid-name
   # Set conv defs defaults and overrides.
   conv_defs_defaults = conv_defs.get('defaults', {})
   conv_defs_overrides = conv_defs.get('overrides', {})
+  #print('What is conv_defs_defaults:', conv_defs_defaults)
+  #print('What is conv_defs_overrides:', conv_defs_overrides)
+
   if use_explicit_padding:
     conv_defs_overrides = copy.deepcopy(conv_defs_overrides)
     conv_defs_overrides[
@@ -275,15 +278,19 @@ def mobilenet_base(  # pylint: disable=invalid-name
       end_point = 'layer_%d' % (i + 1)
       try:
         net = opdef.op(net, **params)
+        #print('opdef',opdef)
+        #print('Get layer', i+1, 'with params:', params)
       except Exception:
         print('Failed to create op %i: %r params: %r' % (i, opdef, params))
         raise
       end_points[end_point] = net
       scope = os.path.dirname(net.name)
+      #print('net.name:',net.name, 'scope:',scope)
       scopes[scope] = end_point
       if final_endpoint is not None and end_point == final_endpoint:
         break
-
+    
+    #raw_input()
     # Add all tensors that end with 'output' to
     # endpoints
     for t in net.graph.get_operations():
@@ -357,6 +364,7 @@ def mobilenet(inputs,
     inputs = tf.identity(inputs, 'input')
     net, end_points = mobilenet_base(inputs, scope=scope, **mobilenet_args)
     if base_only:
+      print ('call base_only version')
       return net, end_points
 
     net = tf.identity(net, name='embedding')

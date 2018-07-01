@@ -128,6 +128,7 @@ class FasterRCNNMobilenetV1FeatureExtractor(
     """
 
     preprocessed_inputs.get_shape().assert_has_rank(4)
+    # pyz comments: image size must at least be 33 in both height and width
     preprocessed_inputs = shape_utils.check_min_image_dim(
         min_dim=33, image_tensor=preprocessed_inputs)
 
@@ -165,6 +166,7 @@ class FasterRCNNMobilenetV1FeatureExtractor(
         [batch_size * self.max_num_proposals, height, width, depth]
         representing box classifier features for each proposal.
     """
+    print 'Enter _extract_box_classifier_features'
     net = proposal_feature_maps
 
     conv_depth = 1024
@@ -181,6 +183,60 @@ class FasterRCNNMobilenetV1FeatureExtractor(
         with slim.arg_scope(
             [slim.conv2d, slim.separable_conv2d], padding='SAME'):
           net = slim.separable_conv2d(
+              net, None, [3, 3],
+              depth_multiplier=1,
+              stride=2, rate=1, normalizer_fn=slim.batch_norm,
+              scope='Conv2d_12_depthwise')
+          net = slim.conv2d(net, depth(conv_depth), [1, 1],
+              stride=1,
+              normalizer_fn=slim.batch_norm,
+              scope='Conv2d_12_pointwise')
+          net = slim.separable_conv2d(
+              net, None, [3, 3],
+              depth_multiplier=1,
+              stride=1, rate=1, normalizer_fn=slim.batch_norm,
+              scope='Conv2d_13_depthwise')
+          net = slim.conv2d(net, depth(conv_depth), [1, 1],
+              stride=1,
+              normalizer_fn=slim.batch_norm,
+              scope='Conv2d_13_pointwise')
+          print 'WFT??', net
+          return net
+      
+
+
+'''
+  # original version
+  def _extract_box_classifier_features(self, proposal_feature_maps, scope):
+    """Extracts second stage box classifier features.
+
+    Args:
+      proposal_feature_maps: A 4-D float tensor with shape
+        [batch_size * self.max_num_proposals, crop_height, crop_width, depth]
+        representing the feature map cropped to each proposal.
+      scope: A scope name (unused).
+
+    Returns:
+      proposal_classifier_features: A 4-D float tensor with shape
+        [batch_size * self.max_num_proposals, height, width, depth]
+        representing box classifier features for each proposal.
+    """
+    net = proposal_feature_maps
+
+    conv_depth = 1024
+    if self._skip_last_stride:
+      conv_depth_ratio = float(self._conv_depth_ratio_in_percentage) / 100.0
+      conv_depth = int(float(conv_depth) * conv_depth_ratio)
+
+    depth = lambda d: max(int(d * 1.0), 16)
+    with tf.variable_scope('MobilenetV1', reuse=self._reuse_weights):
+      with slim.arg_scope(
+          mobilenet_v1.mobilenet_v1_arg_scope(
+              is_training=self._train_batch_norm,
+              weight_decay=self._weight_decay)):
+        with slim.arg_scope(
+            [slim.conv2d, slim.separable_conv2d], padding='SAME'):          
+          net = slim.separable_conv2d(
               net,
               depth(conv_depth), [3, 3],
               depth_multiplier=1,
@@ -192,3 +248,6 @@ class FasterRCNNMobilenetV1FeatureExtractor(
               depth_multiplier=1,
               stride=1,
               scope='Conv2d_13_pointwise')
+          
+'''        
+  
