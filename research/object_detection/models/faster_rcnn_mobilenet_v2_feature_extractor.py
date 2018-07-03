@@ -29,13 +29,13 @@ from nets.mobilenet import conv_blocks as ops
 
 slim = tf.contrib.slim
 
-
+'''
 def _get_mobilenet_conv_no_last_stride_defs(conv_depth_ratio_in_percentage):
 #  print('###models/faster_rcnn_mobilenet_v2_feature_extractor.py###')
 # This func is not called because self._skip_last_stride is not true
   return [
       op(slim.conv2d, stride=2, num_outputs=32, kernel_size=[3, 3]),
-      op(ops.expanded_conv, 
+      op(ops.expanded_conv,
          expansion_size=expand_input(1, divisible_by=1),
          num_outputs=16),
       op(ops.expanded_conv, stride=2, num_outputs=24),
@@ -56,7 +56,7 @@ def _get_mobilenet_conv_no_last_stride_defs(conv_depth_ratio_in_percentage):
       op(ops.expanded_conv, stride=1, num_outputs=320),
       op(slim.conv2d, stride=1, kernel_size=[1, 1], num_outputs=1280)
   ]
-
+'''
 
 
 class FasterRCNNMobilenetV2FeatureExtractor(
@@ -100,7 +100,7 @@ class FasterRCNNMobilenetV2FeatureExtractor(
         is_training, first_stage_features_stride, batch_norm_trainable,
         reuse_weights, weight_decay)
 
-#    print('###faster_rcnn_mobilenet_v2_feature_extractor.py### - depth_multiplier: ', 
+#    print('###faster_rcnn_mobilenet_v2_feature_extractor.py### - depth_multiplier: ',
 #        depth_multiplier)
 
 
@@ -158,7 +158,7 @@ class FasterRCNNMobilenetV2FeatureExtractor(
               conv_depth_ratio_in_percentage=self.
               _conv_depth_ratio_in_percentage)
         '''
-        ''' 
+        '''
         # add by yi.xu
         _, endpoints = mobilenet_v2.mobilenet_base(
             preprocessed_inputs,
@@ -197,26 +197,26 @@ class FasterRCNNMobilenetV2FeatureExtractor(
     """
     net = proposal_feature_maps
 
-    conv_depth = 1280
-    ''' 
+    conv_depth = 1024
+    '''
     # ignore
     if self._skip_last_stride:
       conv_depth_ratio = float(self._conv_depth_ratio_in_percentage) / 100.0
       conv_depth = int(float(conv_depth) * conv_depth_ratio)
     '''
-    
+
     depth = lambda d: max(int(d * 1.0), 16)
     with tf.variable_scope('MobilenetV2', reuse=self._reuse_weights):
       with slim.arg_scope(
           mobilenet_v2.training_scope(
               is_training=self._train_batch_norm,
               weight_decay=self._weight_decay)):
-        
+
         # it is the last two layers of mobilenet v1, should be changed
         '''
         with slim.arg_scope(
             [slim.conv2d, slim.separable_conv2d], padding='SAME'):
-          
+
           net = slim.separable_conv2d(
               net,
               depth(1280), [3, 3],
@@ -229,12 +229,12 @@ class FasterRCNNMobilenetV2FeatureExtractor(
               depth_multiplier=1,
               stride=1,
               scope='Conv_3')  # or 'layer_21'
-          
+
         '''
-        
+
         with slim.arg_scope(
             [slim.conv2d, slim.separable_conv2d], padding='SAME'), \
-            slim.arg_scope([slim.batch_norm], is_training=True):
+            slim.arg_scope([slim.batch_norm], is_training=self._train_batch_norm):
             # not sure, but i think bn should be trainable
           net = slim.separable_conv2d(
               net, None, [3, 3],
@@ -254,7 +254,7 @@ class FasterRCNNMobilenetV2FeatureExtractor(
               stride=1,
               normalizer_fn=slim.batch_norm,
               scope='add_conv2d_2_pointwise')
-          return net            
+          return net
 '''
           net = ops.expanded_conv(
               net,
@@ -289,8 +289,8 @@ class FasterRCNNMobilenetV2FeatureExtractor(
               num_outputs = depth(1280), kernel_size = [1, 1],
               stride=1, normalizer_fn=slim.batch_norm,
               normalizer_params={'scale': True},
-              scope='Conv_1') 
+              scope='Conv_1')
 '''
-         
-        
-  
+
+
+
