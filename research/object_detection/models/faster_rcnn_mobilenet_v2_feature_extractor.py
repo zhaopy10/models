@@ -171,15 +171,15 @@ class FasterRCNNMobilenetV2FeatureExtractor(
         # pyz add: test v2
         _, endpoints = mobilenet_v2.mobilenet(
             preprocessed_inputs,
-            final_endpoint='layer_19',  # layer_14 is the last layer, use layer_18 instead
+            final_endpoint='layer_18',  # layer_14 is the last layer, use layer_18 instead
             base_only=True,
             min_depth=self._min_depth,
             depth_multiplier=self._depth_multiplier,
             scope=scope,
             **params)
         # pyz comments: it seems that depth of layer_18 should be 320
-        print 'layer_19 shape: ', endpoints['layer_19'].get_shape()
-    return endpoints['layer_19'], endpoints
+        print 'layer_18 shape: ', endpoints['layer_18'].get_shape()
+    return endpoints['layer_18'], endpoints
 
   def _extract_box_classifier_features(self, proposal_feature_maps, scope):
     """Extracts second stage box classifier features.
@@ -241,7 +241,7 @@ class FasterRCNNMobilenetV2FeatureExtractor(
               depth_multiplier=1,
               stride=2, rate=1, normalizer_fn=slim.batch_norm,
               scope='add_conv2d_1_depthwise')
-          net = slim.conv2d(net, depth(conv_depth), [1, 1],
+          net = slim.conv2d(net, depth(512), [1, 1],
               stride=1,
               normalizer_fn=slim.batch_norm,
               scope='add_conv2d_1_pointwise')
