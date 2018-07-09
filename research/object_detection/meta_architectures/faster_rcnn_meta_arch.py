@@ -634,7 +634,7 @@ class FasterRCNNMetaArch(model.DetectionModel):
     print 'anchors_boxlist:', anchors_boxlist.get()
     print 'image_shape:', image_shape
     #raw_input()
-    
+
     (rpn_box_encodings, rpn_objectness_predictions_with_background
     ) = self._predict_rpn_proposals(rpn_box_predictor_features)
     print 'rpn_box_encodings:', rpn_box_encodings
@@ -791,7 +791,7 @@ class FasterRCNNMetaArch(model.DetectionModel):
 
     absolute_proposal_boxes = ops.normalized_to_image_coordinates(
         proposal_boxes_normalized, image_shape, self._parallel_iterations)
-    
+
     print 'refined_box_encodings:', refined_box_encodings
     print 'class_predictions_with_background:', class_predictions_with_background
     print 'absolute_proposal_boxes:',absolute_proposal_boxes
@@ -956,6 +956,7 @@ class FasterRCNNMetaArch(model.DetectionModel):
     anchors = box_list_ops.concatenate(
         self._first_stage_anchor_generator.generate([(feature_map_shape[1],
                                                       feature_map_shape[2])]))
+    '''
     with slim.arg_scope(self._first_stage_box_predictor_arg_scope_fn()):
       kernel_size = self._first_stage_box_predictor_kernel_size
       rpn_box_predictor_features = slim.conv2d(
@@ -964,6 +965,23 @@ class FasterRCNNMetaArch(model.DetectionModel):
           kernel_size=[kernel_size, kernel_size],
           rate=self._first_stage_atrous_rate,
           activation_fn=tf.nn.relu6)
+    '''
+    with slim.arg_scope(self._first_stage_box_predictor_arg_scope_fn()):
+      with slim.arg_scope([slim.conv2d, slim.separable_conv2d], padding='SAME'), \
+          slim.arg_scope([slim.batch_norm], is_training=True):
+        kernel_size = self._first_stage_box_predictor_kernel_size
+        rpn_box_predictor_features = slim.separable_conv2d(
+            rpn_features_to_crop, None,
+            kernel_size=[kernel_size, kernel_size],
+            depth_multiplier=1, stride=1, rate=1,
+            normalizer_fn=slim.batch_norm,
+            activation_fn=tf.nn.relu6,
+            scope="depthwise_layer_in_Conv")
+        rpn_box_predictor_features = slim.conv2d(
+            rpn_box_predictor_features, self._first_stage_box_predictor_depth,
+            [1,1], stride=1, normalizer_fn=slim.batch_norm,
+            scope="pointwise_layer_in_Conv")
+
     return (rpn_box_predictor_features, rpn_features_to_crop,
             anchors, image_shape)
 
@@ -1013,7 +1031,7 @@ class FasterRCNNMetaArch(model.DetectionModel):
     print 'box_encodings',box_encodings
     print 'objectness_predictions_with_background',objectness_predictions_with_background
     #raw_input()
-    
+
     return (tf.squeeze(box_encodings, axis=2),
             objectness_predictions_with_background)
 
@@ -1459,8 +1477,8 @@ class FasterRCNNMetaArch(model.DetectionModel):
           tf.range(start=0, limit=proposals_shape[0]), 1)
       return tf.reshape(ones_mat * multiplier, [-1])
 
-    
-    
+
+
     cropped_regions = tf.image.crop_and_resize(
         features_to_crop,
         self._flatten_first_two_dimensions(proposal_boxes_normalized),
@@ -1472,7 +1490,7 @@ class FasterRCNNMetaArch(model.DetectionModel):
     #print '(self._initial_crop_size, self._initial_crop_size)', (self._initial_crop_size, self._initial_crop_size)
     #print 'cropped_regions', cropped_regions
     #raw_input()
-    
+
     return slim.max_pool2d(
         cropped_regions,
         [self._maxpool_kernel_size, self._maxpool_kernel_size],
@@ -2080,9 +2098,9 @@ class FasterRCNNMetaArch(model.DetectionModel):
 
     feature_extractor_variables = tf.contrib.framework.filter_variables(
         variables_to_restore, include_patterns=include_patterns)
-    
+
     #for i,x in enumerate(feature_extractor_variables):
     #    print 'Filtered variable: ', i, ' Content: ', x
     #raw_input()
-    
+
     return {var.op.name: var for var in feature_extractor_variables}

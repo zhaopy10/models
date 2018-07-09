@@ -197,7 +197,7 @@ class FasterRCNNMobilenetV2FeatureExtractor(
     """
     net = proposal_feature_maps
 
-    conv_depth = 1024
+    conv_depth = 512
     '''
     # ignore
     if self._skip_last_stride:
@@ -231,7 +231,6 @@ class FasterRCNNMobilenetV2FeatureExtractor(
               scope='Conv_3')  # or 'layer_21'
 
         '''
-
         with slim.arg_scope(
             [slim.conv2d, slim.separable_conv2d], padding='SAME'), \
             slim.arg_scope([slim.batch_norm], is_training=self._train_batch_norm):
@@ -255,42 +254,5 @@ class FasterRCNNMobilenetV2FeatureExtractor(
               normalizer_fn=slim.batch_norm,
               scope='add_conv2d_2_pointwise')
           return net
-'''
-          net = ops.expanded_conv(
-              net,
-              stride=2, num_outputs=depth(160),
-              normalizer_fn=slim.batch_norm,
-              normalizer_params={'scale': True},
-              scope='expanded_conv_13'
-              )
-          net = ops.expanded_conv(
-              net,
-              stride=1, num_outputs=depth(160),
-              normalizer_fn=slim.batch_norm,
-              normalizer_params={'scale': True},
-              scope='expanded_conv_14'
-              )
-          net = ops.expanded_conv(
-              net,
-              stride=1, num_outputs=depth(160),
-              normalizer_fn=slim.batch_norm,
-              normalizer_params={'scale': True},
-              scope='expanded_conv_15'
-              )
-          net = ops.expanded_conv(
-              net,
-              stride=1, num_outputs=depth(320),
-              normalizer_fn=slim.batch_norm,
-              normalizer_params={'scale': True},
-              scope='expanded_conv_16'
-              )
-          return slim.conv2d(
-              net,
-              num_outputs = depth(1280), kernel_size = [1, 1],
-              stride=1, normalizer_fn=slim.batch_norm,
-              normalizer_params={'scale': True},
-              scope='Conv_1')
-'''
-
 
 
